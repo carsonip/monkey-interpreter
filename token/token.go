@@ -3,7 +3,7 @@ package token
 type TokenType int
 
 const (
-	_ = iota
+	_ TokenType = iota
 	TOKEN_ILLEGAL
 	TOKEN_EOF
 	TOKEN_LPAREN

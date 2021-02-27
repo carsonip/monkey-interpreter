@@ -1,53 +1,28 @@
 package token
 
-import "testing"
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
 
 func TestLexer_NextToken(t *testing.T) {
 	var tok Token
 	l := NewLexer(",. foo let 0123 == != = !foo")
-	if l.NextToken().Type != TOKEN_COMMA {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_DOT {
-		t.Error()
-	}
+	assert.Equal(t, TOKEN_COMMA, l.NextToken().Type)
+	assert.Equal(t, TOKEN_DOT, l.NextToken().Type)
 	tok = l.NextToken()
-	if tok.Type != TOKEN_IDENTIFIER {
-		t.Error()
-	}
-	if tok.Literal != "foo" {
-		t.Error()
-	}
+	assert.Equal(t, TOKEN_IDENTIFIER, tok.Type)
+	assert.Equal(t, "foo", tok.Literal)
 	tok = l.NextToken()
-	if tok.Type != TOKEN_LET {
-		t.Error()
-	}
-	if tok.Literal != "let" {
-		t.Error()
-	}
+	assert.Equal(t, TOKEN_LET, tok.Type)
+	assert.Equal(t, "let", tok.Literal)
 	tok = l.NextToken()
-	if tok.Type != TOKEN_NUMBER {
-		t.Error()
-	}
-	if tok.Literal != "0123" {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_EQUAL {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_NOTEQUAL {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_ASSIGNMENT {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_NOT {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_IDENTIFIER {
-		t.Error()
-	}
-	if l.NextToken().Type != TOKEN_EOF {
-		t.Error()
-	}
+	assert.Equal(t, TOKEN_NUMBER, tok.Type)
+	assert.Equal(t, "0123", tok.Literal)
+	assert.Equal(t, TOKEN_EQUAL, l.NextToken().Type)
+	assert.Equal(t, TOKEN_NOTEQUAL, l.NextToken().Type)
+	assert.Equal(t, TOKEN_ASSIGNMENT, l.NextToken().Type)
+	assert.Equal(t, TOKEN_NOT, l.NextToken().Type)
+	assert.Equal(t, TOKEN_IDENTIFIER, l.NextToken().Type)
+	assert.Equal(t, TOKEN_EOF, l.NextToken().Type)
 }
