@@ -66,8 +66,8 @@ var keywords = map[string]TokenType{
 }
 
 type Token struct {
-	tokenType TokenType
-	literal string
+	Type    TokenType
+	Literal string
 }
 
 type Lexer struct {
@@ -101,7 +101,7 @@ func (l *Lexer) peekChar() byte {
 
 func (l *Lexer) readIdentifier() string {
 	lastPos := l.pos
-	for l.pos < len(l.input) && l.ch != ' ' {
+	for isAlpha(l.ch) {
 		l.readChar()
 	}
 	return l.input[lastPos:l.pos]
@@ -116,7 +116,7 @@ func (l *Lexer) readNumber() string {
 }
 
 func (l *Lexer) eatWhitespace() {
-	for l.ch == ' ' {
+	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' {
 		l.readChar()
 	}
 }
@@ -132,27 +132,27 @@ func (l *Lexer) NextToken() Token {
 			tokenType = TOKEN_IDENTIFIER
 		}
 		return Token{
-			tokenType: tokenType,
-			literal: str,
+			Type:    tokenType,
+			Literal: str,
 		}
 	} else if isDigit(l.ch) {
 		str := l.readNumber()
 		return Token{
-			tokenType: TOKEN_NUMBER,
-			literal: str,
+			Type:    TOKEN_NUMBER,
+			Literal: str,
 		}
 	} else if l.ch == '=' {
 		l.readChar()
 		if l.ch == '=' {
 			l.readChar()
 			return Token{
-				tokenType: TOKEN_EQUAL,
-				literal: "==",
+				Type:    TOKEN_EQUAL,
+				Literal: "==",
 			}
 		} else {
 			return Token{
-				tokenType: TOKEN_ASSIGNMENT,
-				literal: "=",
+				Type:    TOKEN_ASSIGNMENT,
+				Literal: "=",
 			}
 		}
 	} else if l.ch == '!' {
@@ -160,27 +160,28 @@ func (l *Lexer) NextToken() Token {
 		if l.ch == '=' {
 			l.readChar()
 			return Token{
-				tokenType: TOKEN_NOTEQUAL,
-				literal: "!=",
+				Type:    TOKEN_NOTEQUAL,
+				Literal: "!=",
 			}
 		} else {
 			return Token{
-				tokenType: TOKEN_NOT,
-				literal: "!",
+				Type:    TOKEN_NOT,
+				Literal: "!",
 			}
 		}
 	} else {
 		tokenType, ok := charToToken[l.ch]
+		ch := l.ch
 		l.readChar()
 		if !ok {
 			return Token{
-				tokenType: TOKEN_ILLEGAL,
-				literal: "",
+				Type:    TOKEN_ILLEGAL,
+				Literal: "",
 			}
 		}
 		return Token{
-			tokenType: tokenType,
-			literal: string(l.ch),
+			Type:    tokenType,
+			Literal: string(ch),
 		}
 	}
 }

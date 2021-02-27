@@ -5,49 +5,49 @@ import "testing"
 func TestLexer_NextToken(t *testing.T) {
 	var tok Token
 	l := NewLexer(",. foo let 0123 == != = !foo")
-	if l.NextToken().tokenType != TOKEN_COMMA {
+	if l.NextToken().Type != TOKEN_COMMA {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_DOT {
-		t.Error()
-	}
-	tok = l.NextToken()
-	if tok.tokenType != TOKEN_IDENTIFIER {
-		t.Error()
-	}
-	if tok.literal != "foo" {
+	if l.NextToken().Type != TOKEN_DOT {
 		t.Error()
 	}
 	tok = l.NextToken()
-	if tok.tokenType != TOKEN_LET {
+	if tok.Type != TOKEN_IDENTIFIER {
 		t.Error()
 	}
-	if tok.literal != "let" {
+	if tok.Literal != "foo" {
 		t.Error()
 	}
 	tok = l.NextToken()
-	if tok.tokenType != TOKEN_NUMBER {
+	if tok.Type != TOKEN_LET {
 		t.Error()
 	}
-	if tok.literal != "0123" {
+	if tok.Literal != "let" {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_EQUAL {
+	tok = l.NextToken()
+	if tok.Type != TOKEN_NUMBER {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_NOTEQUAL {
+	if tok.Literal != "0123" {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_ASSIGNMENT {
+	if l.NextToken().Type != TOKEN_EQUAL {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_NOT {
+	if l.NextToken().Type != TOKEN_NOTEQUAL {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_IDENTIFIER {
+	if l.NextToken().Type != TOKEN_ASSIGNMENT {
 		t.Error()
 	}
-	if l.NextToken().tokenType != TOKEN_EOF {
+	if l.NextToken().Type != TOKEN_NOT {
+		t.Error()
+	}
+	if l.NextToken().Type != TOKEN_IDENTIFIER {
+		t.Error()
+	}
+	if l.NextToken().Type != TOKEN_EOF {
 		t.Error()
 	}
 }
