@@ -31,6 +31,9 @@ const (
 	TOKEN_NOTEQUAL
 	TOKEN_ASSIGNMENT
 	TOKEN_NOT
+	TOKEN_LT
+	TOKEN_GT
+	TOKEN_SEMICOLON
 )
 
 var charToToken = map[byte]TokenType{
@@ -47,6 +50,9 @@ var charToToken = map[byte]TokenType{
 	'}': TOKEN_RBRACE,
 	'\'': TOKEN_SQUOTE,
 	'"': TOKEN_DQOUTE,
+	'<': TOKEN_LT,
+	'>': TOKEN_GT,
+	';': TOKEN_SEMICOLON,
 }
 
 var keywords = map[string]TokenType{
