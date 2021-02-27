@@ -65,24 +65,31 @@ var keywords = map[string]TokenType{
 	"return": TOKEN_RETURN,
 }
 
-type Token struct {
+type token struct {
 	Type    TokenType
 	Literal string
 }
 
-type Lexer struct {
+func newToken(tokenType TokenType, literal string) token {
+	return token{
+		Type: tokenType,
+		Literal: literal,
+	}
+}
+
+type lexer struct {
 	input string
 	pos int
 	ch byte
 }
 
-func NewLexer(input string) Lexer {
-	l := Lexer{input: input, pos: -1}
+func NewLexer(input string) lexer {
+	l := lexer{input: input, pos: -1}
 	l.readChar()
 	return l
 }
 
-func (l *Lexer) readChar() {
+func (l *lexer) readChar() {
 	l.pos++
 	if l.pos >= len(l.input) {
 		l.ch = 0
@@ -91,7 +98,7 @@ func (l *Lexer) readChar() {
 	}
 }
 
-func (l *Lexer) peekChar() byte {
+func (l *lexer) peekChar() byte {
 	if l.pos+1 >= len(l.input) {
 		return 0
 	} else {
@@ -99,7 +106,7 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-func (l *Lexer) readIdentifier() string {
+func (l *lexer) readIdentifier() string {
 	lastPos := l.pos
 	for isAlpha(l.ch) {
 		l.readChar()
@@ -107,7 +114,7 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[lastPos:l.pos]
 }
 
-func (l *Lexer) readNumber() string {
+func (l *lexer) readNumber() string {
 	lastPos := l.pos
 	for isDigit(l.ch) {
 		l.readChar()
@@ -115,13 +122,13 @@ func (l *Lexer) readNumber() string {
 	return l.input[lastPos:l.pos]
 }
 
-func (l *Lexer) eatWhitespace() {
+func (l *lexer) eatWhitespace() {
 	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' {
 		l.readChar()
 	}
 }
 
-func (l *Lexer) NextToken() Token {
+func (l *lexer) NextToken() token {
 	l.eatWhitespace()
 	if isAlpha(l.ch) {
 		str := l.readIdentifier()
@@ -131,58 +138,34 @@ func (l *Lexer) NextToken() Token {
 		} else {
 			tokenType = TOKEN_IDENTIFIER
 		}
-		return Token{
-			Type:    tokenType,
-			Literal: str,
-		}
+		return newToken(tokenType, str)
 	} else if isDigit(l.ch) {
 		str := l.readNumber()
-		return Token{
-			Type:    TOKEN_NUMBER,
-			Literal: str,
-		}
+		return newToken(TOKEN_NUMBER, str)
 	} else if l.ch == '=' {
 		l.readChar()
 		if l.ch == '=' {
 			l.readChar()
-			return Token{
-				Type:    TOKEN_EQUAL,
-				Literal: "==",
-			}
+			return newToken(TOKEN_EQUAL, "==")
 		} else {
-			return Token{
-				Type:    TOKEN_ASSIGNMENT,
-				Literal: "=",
-			}
+			return newToken(TOKEN_ASSIGNMENT, "=")
 		}
 	} else if l.ch == '!' {
 		l.readChar()
 		if l.ch == '=' {
 			l.readChar()
-			return Token{
-				Type:    TOKEN_NOTEQUAL,
-				Literal: "!=",
-			}
+			return newToken(TOKEN_NOTEQUAL, "!=")
 		} else {
-			return Token{
-				Type:    TOKEN_NOT,
-				Literal: "!",
-			}
+			return newToken(TOKEN_NOT, "!")
 		}
 	} else {
 		tokenType, ok := charToToken[l.ch]
 		ch := l.ch
 		l.readChar()
 		if !ok {
-			return Token{
-				Type:    TOKEN_ILLEGAL,
-				Literal: "",
-			}
+			return newToken(TOKEN_ILLEGAL, "")
 		}
-		return Token{
-			Type:    tokenType,
-			Literal: string(ch),
-		}
+		return newToken(tokenType, string(ch))
 	}
 }
 

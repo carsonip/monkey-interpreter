@@ -6,7 +6,7 @@ import (
 )
 
 func TestLexer_NextToken(t *testing.T) {
-	var tok Token
+	var tok token
 	l := NewLexer(",. foo let 0123 == != = !foo")
 	assert.Equal(t, TOKEN_COMMA, l.NextToken().Type)
 	assert.Equal(t, TOKEN_DOT, l.NextToken().Type)
