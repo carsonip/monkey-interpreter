@@ -1,0 +1,1 @@
+This project is an interpreter to the monkey programming language in the book Writing an Interpreter in Go.
