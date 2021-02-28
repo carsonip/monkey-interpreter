@@ -24,7 +24,12 @@ func (p *Parser) next() {
 
 func (p *Parser) NextNode() ast.Node {
 	var node ast.Node
+	for p.curToken.Type == token.TOKEN_SEMICOLON {
+		p.next()
+	}
 	switch p.curToken.Type {
+	case token.TOKEN_EOF:
+		node = nil
 	case token.TOKEN_LET:
 		node = p.parseLetStatement()
 	default:
@@ -60,10 +65,12 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		exp = p.parseIdentifier()
 	case token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_NOT:
 		exp = p.parsePrefixExpression()
-	case token.TOKEN_FUNCTION, token.TOKEN_TRUE, token.TOKEN_FALSE:
+	case token.TOKEN_FUNCTION:
 		log.Panicf("not implemented")
 		p.next()
 		return nil
+	case token.TOKEN_TRUE, token.TOKEN_FALSE:
+		exp = p.parseBoolean()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -155,5 +162,18 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	}
 	p.next()
 	exp.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX)
+	return exp
+}
+
+func (p *Parser) parseBoolean() ast.Expression {
+	val := false
+	if p.curToken.Type == token.TOKEN_TRUE {
+		val = true
+	}
+	exp := &ast.Boolean{
+		Token: p.curToken,
+		Value: val,
+	}
+	p.next()
 	return exp
 }

@@ -89,3 +89,17 @@ func TestParser_PrefixExpression(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, 1, num.Value)
 }
+
+func TestParser_Boolean(t *testing.T) {
+	str := `true; false`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	exp, ok := node.(*ast.Boolean)
+	assert.True(t, ok)
+	assert.Equal(t, true, exp.Value)
+	node = p.NextNode()
+	exp, ok = node.(*ast.Boolean)
+	assert.True(t, ok)
+	assert.Equal(t, false, exp.Value)
+}

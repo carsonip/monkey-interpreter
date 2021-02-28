@@ -86,3 +86,13 @@ func (p *PrefixExpression) TokenLiteral() string {
 
 func (p *PrefixExpression) expression() {}
 
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *Boolean) expression() {}
