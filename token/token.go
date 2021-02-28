@@ -77,19 +77,19 @@ func newToken(tokenType TokenType, literal string) Token {
 	}
 }
 
-type lexer struct {
+type Lexer struct {
 	input string
 	pos int
 	ch byte
 }
 
-func NewLexer(input string) lexer {
-	l := lexer{input: input, pos: -1}
+func NewLexer(input string) Lexer {
+	l := Lexer{input: input, pos: -1}
 	l.readChar()
 	return l
 }
 
-func (l *lexer) readChar() {
+func (l *Lexer) readChar() {
 	l.pos++
 	if l.pos >= len(l.input) {
 		l.ch = 0
@@ -98,7 +98,7 @@ func (l *lexer) readChar() {
 	}
 }
 
-func (l *lexer) peekChar() byte {
+func (l *Lexer) peekChar() byte {
 	if l.pos+1 >= len(l.input) {
 		return 0
 	} else {
@@ -106,7 +106,7 @@ func (l *lexer) peekChar() byte {
 	}
 }
 
-func (l *lexer) readIdentifier() string {
+func (l *Lexer) readIdentifier() string {
 	lastPos := l.pos
 	for isAlpha(l.ch) {
 		l.readChar()
@@ -114,7 +114,7 @@ func (l *lexer) readIdentifier() string {
 	return l.input[lastPos:l.pos]
 }
 
-func (l *lexer) readNumber() string {
+func (l *Lexer) readNumber() string {
 	lastPos := l.pos
 	for isDigit(l.ch) {
 		l.readChar()
@@ -122,13 +122,13 @@ func (l *lexer) readNumber() string {
 	return l.input[lastPos:l.pos]
 }
 
-func (l *lexer) eatWhitespace() {
+func (l *Lexer) eatWhitespace() {
 	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' {
 		l.readChar()
 	}
 }
 
-func (l *lexer) NextToken() Token {
+func (l *Lexer) NextToken() Token {
 	l.eatWhitespace()
 	if isAlpha(l.ch) {
 		str := l.readIdentifier()
