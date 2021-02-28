@@ -62,3 +62,15 @@ func (n *NumberLiteral) TokenLiteral() string {
 }
 
 func (n *NumberLiteral) expression() {}
+
+type InfixExpression struct {
+	Token token.Token
+	Left Expression
+	Right Expression
+}
+
+func (i *InfixExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *InfixExpression) expression() {}
