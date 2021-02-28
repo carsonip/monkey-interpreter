@@ -76,3 +76,16 @@ func TestParser_InfixExpression_Precedence_Left(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, 3, rExp.Value)
 }
+
+func TestParser_PrefixExpression(t *testing.T) {
+	str := `-1`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	exp, ok := node.(*ast.PrefixExpression)
+	assert.True(t, ok)
+	assert.Equal(t, token.TOKEN_MINUS, exp.Token.Type)
+	num, ok := exp.Right.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 1, num.Value)
+}

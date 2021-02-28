@@ -53,15 +53,14 @@ func (p *Parser) parseExpression() ast.Expression {
 
 func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Expression {
 	var exp ast.Expression
-
 	switch p.curToken.Type {
 	case token.TOKEN_NUMBER:
 		exp = p.parseNumber()
 	case token.TOKEN_IDENTIFIER:
 		exp = p.parseIdentifier()
-	case token.TOKEN_FUNCTION:
-	case token.TOKEN_TRUE:
-	case token.TOKEN_FALSE:
+	case token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_NOT:
+		exp = p.parsePrefixExpression()
+	case token.TOKEN_FUNCTION, token.TOKEN_TRUE, token.TOKEN_FALSE:
 		log.Panicf("not implemented")
 		p.next()
 		return nil
@@ -131,6 +130,7 @@ const (
 	_ Precedence = iota
 	PRECEDENCE_PLUS_MINUS
 	PRECEDENCE_MULTIPLY_DIVIDE
+	PRECEDENCE_PREFIX
 )
 var operatorToPrecedence = map[token.TokenType]Precedence{
 	token.TOKEN_PLUS: PRECEDENCE_PLUS_MINUS,
@@ -146,5 +146,14 @@ func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precede
 	}
 	p.next()
 	exp.Right = p.parseExpressionWithPrecedence(curPrecedence)
+	return exp
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	exp := &ast.PrefixExpression{
+		Token: p.curToken,
+	}
+	p.next()
+	exp.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX)
 	return exp
 }

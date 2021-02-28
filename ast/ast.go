@@ -74,3 +74,15 @@ func (i *InfixExpression) TokenLiteral() string {
 }
 
 func (i *InfixExpression) expression() {}
+
+type PrefixExpression struct {
+	Token token.Token
+	Right Expression
+}
+
+func (p *PrefixExpression) TokenLiteral() string {
+	return p.Token.Literal
+}
+
+func (p *PrefixExpression) expression() {}
+
