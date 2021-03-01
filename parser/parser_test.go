@@ -22,6 +22,20 @@ func TestParser_LetStatement(t *testing.T) {
 	assert.Nil(t, node)
 }
 
+func TestParser_ReturnStatement(t *testing.T) {
+	str := `return 123;`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	r, ok := node.(*ast.ReturnStatement)
+	assert.True(t, ok)
+	num, ok := r.Value.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 123, num.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
+}
+
 func TestParser_InfixExpression(t *testing.T) {
 	str := `1 + 2`
 	lex := token.NewLexer(str)

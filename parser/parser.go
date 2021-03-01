@@ -32,6 +32,8 @@ func (p *Parser) NextNode() ast.Node {
 		node = nil
 	case token.TOKEN_LET:
 		node = p.parseLetStatement()
+	case token.TOKEN_RETURN:
+		node = p.parseReturnStatement()
 	default:
 		node = p.parseExpression()
 	}
@@ -50,6 +52,16 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	p.next()
 	l.Value = p.parseExpression()
 	return l
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	s := &ast.ReturnStatement{
+		Token: p.curToken,
+	}
+	p.next()
+	exp := p.parseExpression()
+	s.Value = exp
+	return s
 }
 
 func (p *Parser) parseExpression() ast.Expression {
