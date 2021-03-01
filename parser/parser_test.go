@@ -18,6 +18,8 @@ func TestParser_LetStatement(t *testing.T) {
 	num, ok := l.Value.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 123, num.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_InfixExpression(t *testing.T) {
@@ -34,6 +36,8 @@ func TestParser_InfixExpression(t *testing.T) {
 	num, ok = exp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 2, num.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_InfixExpression_Precedence(t *testing.T) {
@@ -53,6 +57,8 @@ func TestParser_InfixExpression_Precedence(t *testing.T) {
 	rExp, ok := exp.Right.(*ast.InfixExpression)
 	assert.True(t, ok)
 	assert.Equal(t, token.TOKEN_SLASH, rExp.Token.Type)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_InfixExpression_Precedence_Left(t *testing.T) {
@@ -75,6 +81,8 @@ func TestParser_InfixExpression_Precedence_Left(t *testing.T) {
 	rExp, ok := exp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 3, rExp.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_PrefixExpression(t *testing.T) {
@@ -88,6 +96,8 @@ func TestParser_PrefixExpression(t *testing.T) {
 	num, ok := exp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 1, num.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_Boolean(t *testing.T) {
@@ -102,6 +112,8 @@ func TestParser_Boolean(t *testing.T) {
 	exp, ok = node.(*ast.Boolean)
 	assert.True(t, ok)
 	assert.Equal(t, false, exp.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }
 
 func TestParser_GroupedExpression(t *testing.T) {
@@ -124,4 +136,6 @@ func TestParser_GroupedExpression(t *testing.T) {
 	rRExp, ok := rExp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 3, rRExp.Value)
+	node = p.NextNode()
+	assert.Nil(t, node)
 }

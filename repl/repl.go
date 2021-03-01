@@ -3,6 +3,7 @@ package repl
 import (
 	"bufio"
 	"fmt"
+	"github.com/carsonip/monkey-interpreter/parser"
 	"github.com/carsonip/monkey-interpreter/token"
 	"io"
 )
@@ -20,14 +21,10 @@ func (r *Repl) Start(in io.Reader, out io.Writer) {
 		}
 		if line := scanner.Text(); line != "" {
 			lex := token.NewLexer(line)
-			for {
-				tok := lex.NextToken()
-				if tok.Type == token.TOKEN_EOF {
-					break
-				}
-				fmt.Fprintf(out, "%v ", tok)
+			p := parser.NewParser(&lex)
+			for node := p.NextNode(); node != nil; node = p.NextNode(){
+				fmt.Fprintf(out, "%v\n", node)
 			}
-			fmt.Fprintln(out)
 		}
 	}
 }
