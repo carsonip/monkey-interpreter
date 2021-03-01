@@ -53,10 +53,17 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 }
 
 func (p *Parser) parseExpression() ast.Expression {
-	return p.parseExpressionWithPrecedence(0)
+	return p.parseExpressionWithPrecedence(0, false)
 }
 
-func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Expression {
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.next()
+	exp := p.parseExpressionWithPrecedence(0, true)
+	p.next()
+	return exp
+}
+
+func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence, isGrouped bool) ast.Expression {
 	var exp ast.Expression
 	switch p.curToken.Type {
 	case token.TOKEN_NUMBER:
@@ -71,6 +78,8 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		return nil
 	case token.TOKEN_TRUE, token.TOKEN_FALSE:
 		exp = p.parseBoolean()
+	case token.TOKEN_LPAREN:
+		exp = p.parseGroupedExpression()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -78,8 +87,18 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 	}
 
 	for {
-		if p.curTokenIs(token.TOKEN_SEMICOLON) || p.curTokenIs(token.TOKEN_EOF) {
-			return exp
+		if isGrouped {
+			if p.curTokenIs(token.TOKEN_RPAREN) {
+				return exp
+			}
+			if p.curTokenIs(token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
+				log.Panicf("expected RPAREN, got %d %s instead", p.curToken.Type, p.curToken.Literal)
+				return nil
+			}
+		} else {
+			if p.curTokenIs(token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
+				return exp
+			}
 		}
 
 		if !p.curTokenIs(token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH) {
@@ -92,7 +111,7 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 			return exp
 		}
 
-		exp = p.parseInfixExpression(exp, precedence)
+		exp = p.parseInfixExpression(exp, precedence, isGrouped)
 	}
 }
 
@@ -146,13 +165,13 @@ var operatorToPrecedence = map[token.TokenType]Precedence{
 	token.TOKEN_SLASH: PRECEDENCE_MULTIPLY_DIVIDE,
 }
 
-func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precedence) ast.Expression {
+func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precedence, isGrouped bool) ast.Expression {
 	exp := &ast.InfixExpression{
 		Token: p.curToken,
 		Left:  left,
 	}
 	p.next()
-	exp.Right = p.parseExpressionWithPrecedence(curPrecedence)
+	exp.Right = p.parseExpressionWithPrecedence(curPrecedence, isGrouped)
 	return exp
 }
 
@@ -161,7 +180,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 		Token: p.curToken,
 	}
 	p.next()
-	exp.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX)
+	exp.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX, false)
 	return exp
 }
 

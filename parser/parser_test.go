@@ -103,3 +103,25 @@ func TestParser_Boolean(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, false, exp.Value)
 }
+
+func TestParser_GroupedExpression(t *testing.T) {
+	str := `1 * (2 + 3)`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	exp, ok := node.(*ast.InfixExpression)
+	assert.True(t, ok)
+	assert.Equal(t, token.TOKEN_ASTERISK, exp.Token.Type)
+	lExp, ok := exp.Left.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 1, lExp.Value)
+	rExp, ok := exp.Right.(*ast.InfixExpression)
+	assert.True(t, ok)
+	assert.Equal(t, token.TOKEN_PLUS, rExp.Token.Type)
+	rLExp, ok := rExp.Left.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 2, rLExp.Value)
+	rRExp, ok := rExp.Right.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 3, rRExp.Value)
+}
