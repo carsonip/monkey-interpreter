@@ -22,3 +22,17 @@ func TestEvaluator_evalInfixExpression(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, 3, num.Value)
 }
+
+func TestEvaluator_evalPrefixExpression(t *testing.T) {
+	tests := [][2]string{
+		{"+1", "1"},
+		{"-1", "-1"},
+		{"!true", "false"},
+		{"!false", "true"},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		obj := eval.EvalNext()
+		assert.Equal(t, test[1], obj.String())
+	}
+}
