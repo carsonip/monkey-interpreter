@@ -119,3 +119,15 @@ func (f *Function) TokenLiteral() string {
 }
 
 func (f *Function) expression() {}
+
+type FunctionCall struct {
+	Token token.Token
+	FunctionExpr Expression
+	Arguments []Expression
+}
+
+func (f *FunctionCall) TokenLiteral() string {
+	return f.Token.Literal
+}
+
+func (f *FunctionCall) expression() {}

@@ -166,3 +166,17 @@ func TestParser_Function(t *testing.T) {
 	assert.Equal(t, "y", fn.Params[1].TokenLiteral())
 	assert.Len(t, fn.Nodes, 3)
 }
+
+func TestParser_FunctionCall(t *testing.T) {
+	str := `f(x, 10 + y, fn(){})`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	fnCall, ok := node.(*ast.FunctionCall)
+	assert.True(t, ok)
+	assert.Equal(t, "f", fnCall.FunctionExpr.TokenLiteral())
+	assert.Len(t, fnCall.Arguments, 3)
+	assert.IsType(t, &ast.Identifier{}, fnCall.Arguments[0])
+	assert.IsType(t, &ast.InfixExpression{}, fnCall.Arguments[1])
+	assert.IsType(t, &ast.Function{}, fnCall.Arguments[2])
+}

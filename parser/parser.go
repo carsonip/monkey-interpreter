@@ -76,20 +76,20 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 }
 
 func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence, isGrouped bool) ast.Expression {
-	var exp ast.Expression
+	var expr ast.Expression
 	switch p.curToken.Type {
 	case token.TOKEN_NUMBER:
-		exp = p.parseNumber()
+		expr = p.parseNumber()
 	case token.TOKEN_IDENTIFIER:
-		exp = p.parseIdentifier()
+		expr = p.parseIdentifier()
 	case token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_NOT:
-		exp = p.parsePrefixExpression()
+		expr = p.parsePrefixExpression()
 	case token.TOKEN_FUNCTION:
-		exp = p.parseFunction()
+		expr = p.parseFunction()
 	case token.TOKEN_TRUE, token.TOKEN_FALSE:
-		exp = p.parseBoolean()
+		expr = p.parseBoolean()
 	case token.TOKEN_LPAREN:
-		exp = p.parseGroupedExpression()
+		expr = p.parseGroupedExpression()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -99,29 +99,31 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence, isGroup
 	for {
 		if isGrouped {
 			if p.curTokenIs(token.TOKEN_RPAREN) {
-				return exp
+				return expr
 			}
 			if p.curTokenIs(token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
 				log.Panicf("expected RPAREN, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 				return nil
 			}
 		} else {
-			if p.curTokenIs(token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
-				return exp
+			if p.curTokenIs(token.TOKEN_RPAREN, token.TOKEN_COMMA, token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
+				return expr
 			}
 		}
 
-		if !p.curTokenIs(token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH) {
+		if p.curTokenIs(token.TOKEN_LPAREN) {
+			return p.parseFunctionCall(expr)
+		} else if p.curTokenIs(token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH) {
+			precedence := operatorToPrecedence[p.curToken.Type]
+			if precedence <= curPrecedence {
+				return expr
+			}
+
+			expr = p.parseInfixExpression(expr, precedence, isGrouped)
+		} else {
 			log.Panicf("expected operator, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 			return nil
 		}
-
-		precedence := operatorToPrecedence[p.curToken.Type]
-		if precedence <= curPrecedence {
-			return exp
-		}
-
-		exp = p.parseInfixExpression(exp, precedence, isGrouped)
 	}
 }
 
@@ -198,12 +200,14 @@ const (
 	PRECEDENCE_PLUS_MINUS
 	PRECEDENCE_MULTIPLY_DIVIDE
 	PRECEDENCE_PREFIX
+	PRECEDENCE_CALL
 )
 var operatorToPrecedence = map[token.TokenType]Precedence{
 	token.TOKEN_PLUS: PRECEDENCE_PLUS_MINUS,
 	token.TOKEN_MINUS: PRECEDENCE_PLUS_MINUS,
 	token.TOKEN_ASTERISK: PRECEDENCE_MULTIPLY_DIVIDE,
 	token.TOKEN_SLASH: PRECEDENCE_MULTIPLY_DIVIDE,
+	token.TOKEN_LPAREN: PRECEDENCE_CALL,
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precedence, isGrouped bool) ast.Expression {
@@ -236,4 +240,21 @@ func (p *Parser) parseBoolean() ast.Expression {
 	}
 	p.next()
 	return exp
+}
+
+func (p *Parser) parseFunctionCall(expr ast.Expression) *ast.FunctionCall {
+	fnCall := &ast.FunctionCall{Token: p.curToken, FunctionExpr: expr}
+	p.expectAndNext(token.TOKEN_LPAREN)
+	first := true
+	for !p.curTokenIs(token.TOKEN_RPAREN) {
+		if first {
+			first = false
+		} else {
+			p.expectAndNext(token.TOKEN_COMMA)
+		}
+		expr := p.parseExpression()
+		fnCall.Arguments = append(fnCall.Arguments, expr)
+	}
+	p.expectAndNext(token.TOKEN_RPAREN)
+	return fnCall
 }
