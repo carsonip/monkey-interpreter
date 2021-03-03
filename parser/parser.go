@@ -44,12 +44,9 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	l := &ast.LetStatement{
 		Token: p.curToken,
 	}
-	p.next()
+	p.expectAndNext(token.TOKEN_LET)
 	l.Name = p.parseIdentifier()
-	if !p.curTokenIs(token.TOKEN_ASSIGNMENT) {
-		log.Panicf("expected =, got %d instead", p.curToken.Type)
-	}
-	p.next()
+	p.expectAndNext(token.TOKEN_ASSIGNMENT)
 	l.Value = p.parseExpression()
 	return l
 }
@@ -58,7 +55,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	s := &ast.ReturnStatement{
 		Token: p.curToken,
 	}
-	p.next()
+	p.expectAndNext(token.TOKEN_RETURN)
 	exp := p.parseExpression()
 	s.Value = exp
 	return s
@@ -69,9 +66,9 @@ func (p *Parser) parseExpression() ast.Expression {
 }
 
 func (p *Parser) parseGroupedExpression() ast.Expression {
-	p.next()
+	p.expectAndNext(token.TOKEN_LPAREN)
 	exp := p.parseExpressionWithPrecedence(0, true)
-	p.next()
+	p.expectAndNext(token.TOKEN_RPAREN)
 	return exp
 }
 
@@ -146,12 +143,9 @@ func (p *Parser) parseNumber() *ast.NumberLiteral {
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
-	if !p.curTokenIs(token.TOKEN_IDENTIFIER) {
-		log.Panicf("expected identifier, got %d %s instead", p.curToken.Type, p.curToken.Literal)
-	}
-	lit := &ast.Identifier{Token: p.curToken}
-	p.next()
-	return lit
+	ident := &ast.Identifier{Token: p.curToken}
+	p.expectAndNext(token.TOKEN_IDENTIFIER)
+	return ident
 }
 
 func(p *Parser) parseFunction() *ast.Function {
