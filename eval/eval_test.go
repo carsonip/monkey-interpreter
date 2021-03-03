@@ -38,12 +38,21 @@ func TestEvaluator_evalPrefixExpression(t *testing.T) {
 }
 
 func TestEvaluator_evalLetStatement(t *testing.T) {
-	var obj object.Object
 	input := `let x = 100;
 x`
 	eval := getEvaluator(input)
-	obj = eval.EvalNext(eval.env)
-	assert.Equal(t, "", obj.String())
-	obj = eval.EvalNext(eval.env)
-	assert.Equal(t, "100", obj.String())
+	assert.Equal(t, "", eval.EvalNext(eval.env).String())
+	assert.Equal(t, "100", eval.EvalNext(eval.env).String())
+}
+
+func TestEvaluator_evalIdentifier(t *testing.T) {
+	input := `let x = 100;
+x;
+x+x;
+3*x`
+	eval := getEvaluator(input)
+	assert.Equal(t, "", eval.EvalNext(eval.env).String())
+	assert.Equal(t, "100", eval.EvalNext(eval.env).String())
+	assert.Equal(t, "200", eval.EvalNext(eval.env).String())
+	assert.Equal(t, "300", eval.EvalNext(eval.env).String())
 }
