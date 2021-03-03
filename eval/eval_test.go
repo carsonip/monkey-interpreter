@@ -17,7 +17,7 @@ func getEvaluator(input string) Evaluator {
 
 func TestEvaluator_evalInfixExpression(t *testing.T) {
 	eval := getEvaluator(`1+2*3-4`)
-	obj := eval.EvalNext()
+	obj := eval.EvalNext(eval.env)
 	num, ok := obj.(object.Integer)
 	assert.True(t, ok)
 	assert.Equal(t, 3, num.Value)
@@ -32,7 +32,18 @@ func TestEvaluator_evalPrefixExpression(t *testing.T) {
 	}
 	for _, test := range tests {
 		eval := getEvaluator(test[0])
-		obj := eval.EvalNext()
+		obj := eval.EvalNext(eval.env)
 		assert.Equal(t, test[1], obj.String())
 	}
+}
+
+func TestEvaluator_evalLetStatement(t *testing.T) {
+	var obj object.Object
+	input := `let x = 100;
+x`
+	eval := getEvaluator(input)
+	obj = eval.EvalNext(eval.env)
+	assert.Equal(t, "", obj.String())
+	obj = eval.EvalNext(eval.env)
+	assert.Equal(t, "100", obj.String())
 }
