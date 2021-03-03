@@ -153,3 +153,16 @@ func TestParser_GroupedExpression(t *testing.T) {
 	node = p.NextNode()
 	assert.Nil(t, node)
 }
+
+func TestParser_Function(t *testing.T) {
+	str := `fn(x, y){ 1; x; let w=true; }`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	fn, ok := node.(*ast.Function)
+	assert.True(t, ok)
+	assert.Len(t, fn.Params, 2)
+	assert.Equal(t, "x", fn.Params[0].TokenLiteral())
+	assert.Equal(t, "y", fn.Params[1].TokenLiteral())
+	assert.Len(t, fn.Nodes, 3)
+}

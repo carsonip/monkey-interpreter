@@ -24,9 +24,6 @@ func (p *Parser) next() {
 
 func (p *Parser) NextNode() ast.Node {
 	var node ast.Node
-	for p.curToken.Type == token.TOKEN_SEMICOLON {
-		p.next()
-	}
 	switch p.curToken.Type {
 	case token.TOKEN_EOF:
 		node = nil
@@ -36,6 +33,9 @@ func (p *Parser) NextNode() ast.Node {
 		node = p.parseReturnStatement()
 	default:
 		node = p.parseExpression()
+	}
+	for p.curTokenIs(token.TOKEN_SEMICOLON) {
+		p.next()
 	}
 	return node
 }
@@ -85,9 +85,7 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence, isGroup
 	case token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_NOT:
 		exp = p.parsePrefixExpression()
 	case token.TOKEN_FUNCTION:
-		log.Panicf("not implemented")
-		p.next()
-		return nil
+		exp = p.parseFunction()
 	case token.TOKEN_TRUE, token.TOKEN_FALSE:
 		exp = p.parseBoolean()
 	case token.TOKEN_LPAREN:
@@ -152,6 +150,37 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	lit := &ast.Identifier{Token: p.curToken}
 	p.next()
 	return lit
+}
+
+func(p *Parser) parseFunction() *ast.Function {
+	fn := &ast.Function{Token: p.curToken}
+	p.expectAndNext(token.TOKEN_FUNCTION)
+	p.expectAndNext(token.TOKEN_LPAREN)
+	isFirst := true
+	for !p.curTokenIs(token.TOKEN_RPAREN) {
+		if isFirst {
+			isFirst = false
+		} else {
+			p.expectAndNext(token.TOKEN_COMMA)
+		}
+		ident := p.parseIdentifier()
+		fn.Params = append(fn.Params, ident)
+	}
+	p.expectAndNext(token.TOKEN_RPAREN)
+	p.expectAndNext(token.TOKEN_LBRACE)
+	for !p.curTokenIs(token.TOKEN_RBRACE) {
+		node := p.NextNode()
+		fn.Nodes = append(fn.Nodes, node)
+	}
+	p.expectAndNext(token.TOKEN_RBRACE)
+	return fn
+}
+
+func (p *Parser) expectAndNext(token token.TokenType) {
+	if !p.curTokenIs(token) {
+		log.Panicf("expected %d, got %d %s instead", token, p.curToken.Type, p.curToken.Literal)
+	}
+	p.next()
 }
 
 func (p *Parser) curTokenIs(tokenTypes ...token.TokenType) bool {

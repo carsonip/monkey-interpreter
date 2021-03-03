@@ -107,3 +107,15 @@ func (b *Boolean) TokenLiteral() string {
 }
 
 func (b *Boolean) expression() {}
+
+type Function struct {
+	Token token.Token
+	Params []*Identifier
+	Nodes []Node
+}
+
+func (f *Function) TokenLiteral() string {
+	return f.Token.Literal
+}
+
+func (f *Function) expression() {}
