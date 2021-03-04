@@ -145,11 +145,11 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 }
 
 func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) *object.Function {
-	var paramStrs []string
+	var params []string
 	for _, p := range fn.Params {
-		paramStrs = append(paramStrs, p.TokenLiteral())
+		params = append(params, p.TokenLiteral())
 	}
-	fnObj := object.NewFunction(paramStrs, fn.Body)
+	fnObj := object.NewFunction(params, fn.Body)
 	return &fnObj
 }
 
@@ -159,8 +159,8 @@ func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *Env) object
 		panic("not a function")
 	} else {
 		var args []object.Object
-		for _, argAst := range fnCall.Arguments {
-			args = append(args, ev.evalExpression(argAst, env))
+		for _, argExpr := range fnCall.Arguments {
+			args = append(args, ev.evalExpression(argExpr, env))
 		}
 		return ev.callFunction(fn, args, env)
 	}
