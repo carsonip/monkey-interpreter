@@ -182,7 +182,7 @@ func TestParser_FunctionCall(t *testing.T) {
 }
 
 func TestParser_IfStatement(t *testing.T) {
-	str := `if true { 1; 2; }`
+	str := `if (true) { 1; 2; }`
 	lex := token.NewLexer(str)
 	p := NewParser(&lex)
 	node := p.NextNode()
@@ -196,7 +196,7 @@ func TestParser_IfStatement(t *testing.T) {
 }
 
 func TestParser_IfStatement_Else(t *testing.T) {
-	str := `if true { 1; 2; } else { 3; 4; }`
+	str := `if (true) { 1; 2; } else { 3; 4; }`
 	lex := token.NewLexer(str)
 	p := NewParser(&lex)
 	node := p.NextNode()

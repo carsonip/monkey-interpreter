@@ -68,8 +68,10 @@ func (p *Parser) parseIfStatement() *ast.IfStatement {
 		Token: p.curToken,
 	}
 	p.expectAndNext(token.TOKEN_IF)
+	p.expectAndNext(token.TOKEN_LPAREN)
 	expr := p.parseExpression()
 	s.Condition = expr
+	p.expectAndNext(token.TOKEN_RPAREN)
 	p.expectAndNext(token.TOKEN_LBRACE)
 	for !p.curTokenIs(token.TOKEN_RBRACE) {
 		s.Then = append(s.Then, p.NextNode())
