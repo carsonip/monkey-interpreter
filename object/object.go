@@ -25,16 +25,24 @@ func NewNestedEnv(parentEnv *Env) *Env {
 	return env
 }
 
-func (e *Env) Get(name string) Object {
+func (e *Env) Get(name string) (Object, bool) {
 	if obj, ok := e.env[name]; ok {
-		return obj
+		return obj, true
 	} else {
 		if e.parentEnv != nil {
 			return e.parentEnv.Get(name)
 		} else {
-			panic("unknown identifier")
+			return NULL, false
 		}
 	}
+}
+
+func (e *Env) MustGet(name string) Object {
+	val, ok := e.Get(name)
+	if !ok {
+		panic("unknown identifier")
+	}
+	return val
 }
 
 func (e *Env) Set(name string, value Object) {

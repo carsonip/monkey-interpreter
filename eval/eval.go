@@ -7,6 +7,8 @@ import (
 	"github.com/carsonip/monkey-interpreter/token"
 )
 
+const RET_IDENT = "__ret"
+
 type Evaluator struct {
 	parser *parser.Parser
 	env *object.Env
@@ -35,6 +37,8 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *object.Env) {
 	switch statement := statement.(type) {
 	case *ast.LetStatement:
 		ev.evalLetStatement(statement, env)
+	case *ast.ReturnStatement:
+		ev.evalReturnStatement(statement, env)
 	default:
 		panic("not implemented")
 	}
@@ -44,6 +48,11 @@ func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *object.E
 	name := statement.Name.TokenLiteral()
 	val := ev.evalExpression(statement.Value, env)
 	env.Set(name, val)
+}
+
+func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *object.Env) {
+	val := ev.evalExpression(statement.Value, env)
+	env.Set(RET_IDENT, val)
 }
 
 func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object.Object {
@@ -57,7 +66,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object
 	case *ast.PrefixExpression:
 		return ev.evalPrefixExpression(expr, env)
 	case *ast.Identifier:
-		return env.Get(expr.TokenLiteral())
+		return env.MustGet(expr.TokenLiteral())
 	case *ast.Function:
 		return ev.evalFunction(expr, env)
 	case *ast.FunctionCall:
@@ -147,6 +156,9 @@ func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, par
 	}
 	for _, node := range fn.Body {
 		ev.Eval(node, env)
+		if val, ok := env.Get(RET_IDENT); ok {
+			return val
+		}
 	}
 	return object.NULL
 }

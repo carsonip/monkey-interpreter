@@ -64,7 +64,14 @@ func TestEvaluator_evalFunction(t *testing.T) {
 }
 
 func TestEvaluator_evalFunctionCall(t *testing.T) {
-	input := `fn(x, y){100; x+200;}(1, 2)`
-	eval := getEvaluator(input)
-	assert.Equal(t, "", eval.EvalNext(eval.env).String())
+	tests := [][2]string{
+		{"fn(){1;}()", ""},
+		{"fn(){1; return 2;}()", "2"},
+		{"fn(x){1; return 2; return true;}(100)", "2"},
+		{"fn(x, y){100; x+200; return x+y; 300;}(1, 2)", "3"},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
+	}
 }
