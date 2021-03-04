@@ -69,6 +69,8 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 		{"fn(){1; return 2;}()", "2"},
 		{"fn(x){1; return 2; return true;}(100)", "2"},
 		{"fn(x, y){100; x+200; return x+y; 300;}(1, 2)", "3"},
+		{"fn(){fn(){return 1;}()}()", ""},
+		{"fn(){return fn(){return 1;}()}()", "1"},
 	}
 	for _, test := range tests {
 		eval := getEvaluator(test[0])
