@@ -3,8 +3,9 @@ package eval
 import "github.com/carsonip/monkey-interpreter/object"
 
 type Env struct {
-	parentEnv *Env
-	env       map[string]object.Object
+	parentEnv   *Env
+	env         map[string]object.Object
+	returnValue object.Object
 }
 
 func NewEnv() *Env {
@@ -29,7 +30,7 @@ func (e *Env) Get(name string) (object.Object, bool) {
 		if e.parentEnv != nil {
 			return e.parentEnv.Get(name)
 		} else {
-			return object.NULL, false
+			return nil, false
 		}
 	}
 }
@@ -46,3 +47,13 @@ func (e *Env) Set(name string, value object.Object) {
 	e.env[name] = value
 }
 
+func (e *Env) Return(value object.Object) {
+	e.returnValue = value
+}
+
+func (e *Env) Returned() (object.Object, bool) {
+	if e.returnValue != nil {
+		return e.returnValue, true
+	}
+	return nil, false
+}

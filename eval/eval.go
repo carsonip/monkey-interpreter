@@ -7,8 +7,6 @@ import (
 	"github.com/carsonip/monkey-interpreter/token"
 )
 
-const RET_IDENT = "__ret"
-
 type Evaluator struct {
 	parser *parser.Parser
 	env *Env
@@ -52,7 +50,7 @@ func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *Env) {
 
 func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *Env) {
 	val := ev.evalExpression(statement.Value, env)
-	env.Set(RET_IDENT, val)
+	env.Return(val)
 }
 
 func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object {
@@ -160,7 +158,7 @@ func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, par
 	}
 	for _, node := range fn.Body {
 		ev.Eval(node, env)
-		if val, ok := env.Get(RET_IDENT); ok {
+		if val, ok := env.Returned(); ok {
 			return val
 		}
 	}
