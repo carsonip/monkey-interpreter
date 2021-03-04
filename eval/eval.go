@@ -9,24 +9,14 @@ import (
 
 type Evaluator struct {
 	parser *parser.Parser
-	env *Env
-}
-
-type Env struct {
-	env map[string]object.Object
-}
-
-func NewEnv() *Env {
-	env := &Env{}
-	env.env = make(map[string]object.Object)
-	return env
+	env *object.Env
 }
 
 func NewEvaluator(parser *parser.Parser) Evaluator {
-	return Evaluator{parser: parser, env: NewEnv()}
+	return Evaluator{parser: parser, env: object.NewEnv()}
 }
 
-func (ev *Evaluator) EvalNext(env *Env) object.Object {
+func (ev *Evaluator) EvalNext(env *object.Env) object.Object {
 	node := ev.parser.NextNode()
 	if statement, ok := node.(ast.Statement); ok {
 		ev.evalStatement(statement, env)
@@ -37,7 +27,7 @@ func (ev *Evaluator) EvalNext(env *Env) object.Object {
 	panic("not implemented")
 }
 
-func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
+func (ev *Evaluator) evalStatement(statement ast.Statement, env *object.Env) {
 	switch statement := statement.(type) {
 	case *ast.LetStatement:
 		ev.evalLetStatement(statement, env)
@@ -46,13 +36,13 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
 	}
 }
 
-func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *Env) {
+func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *object.Env) {
 	name := statement.Name.TokenLiteral()
 	val := ev.evalExpression(statement.Value, env)
-	env.env[name] = val
+	env.Set(name, val)
 }
 
-func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object {
+func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object.Object {
 	switch expr := expr.(type) {
 	case *ast.NumberLiteral:
 		return object.NewInteger(expr.Value)
@@ -63,16 +53,16 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 	case *ast.PrefixExpression:
 		return ev.evalPrefixExpression(expr, env)
 	case *ast.Identifier:
-		if obj, ok := env.env[expr.TokenLiteral()]; !ok {
-			panic("unknown identifier")
-		} else {
-			return obj
-		}
+		return env.Get(expr.TokenLiteral())
+	case *ast.Function:
+
+	case *ast.FunctionCall:
+
 	}
 	panic("not implemented")
 }
 
-func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
+func (ev *Evaluator) evalNumber(expr ast.Expression, env *object.Env) int {
 	obj := ev.evalExpression(expr, env)
 	if num, ok := obj.(object.Integer); ok {
 		return num.Value
@@ -80,7 +70,7 @@ func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
 	panic("not int")
 }
 
-func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
+func (ev *Evaluator) evalBoolean(expr ast.Expression, env *object.Env) bool {
 	obj := ev.evalExpression(expr, env)
 	if boolean, ok := obj.(object.Boolean); ok {
 		return boolean.Value
@@ -88,7 +78,7 @@ func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
 	panic("not bool")
 }
 
-func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) object.Object {
+func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *object.Env) object.Object {
 	var result int
 	switch infix.Token.Type {
 	case token.TOKEN_PLUS:
@@ -103,7 +93,7 @@ func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) o
 	return object.NewInteger(result)
 }
 
-func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env) object.Object {
+func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *object.Env) object.Object {
 	switch prefix.Right.(type) {
 	case *ast.NumberLiteral:
 		var result int
@@ -123,4 +113,9 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 		}
 	}
 	panic("not implemented")
+}
+
+func (ev *Evaluator) evalFunction(fn *ast.Function, env *object.Env) *object.Function {
+	fnObj := object.NewFunction(fn.Params, fn.Body, object.NewNestedEnv(env))
+	return &fnObj
 }

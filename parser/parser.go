@@ -166,7 +166,7 @@ func(p *Parser) parseFunction() *ast.Function {
 	p.expectAndNext(token.TOKEN_LBRACE)
 	for !p.curTokenIs(token.TOKEN_RBRACE) {
 		node := p.NextNode()
-		fn.Nodes = append(fn.Nodes, node)
+		fn.Body = append(fn.Body, node)
 	}
 	p.expectAndNext(token.TOKEN_RBRACE)
 	return fn

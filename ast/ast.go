@@ -109,9 +109,9 @@ func (b *Boolean) TokenLiteral() string {
 func (b *Boolean) expression() {}
 
 type Function struct {
-	Token token.Token
+	Token  token.Token
 	Params []*Identifier
-	Nodes []Node
+	Body   []Node
 }
 
 func (f *Function) TokenLiteral() string {
