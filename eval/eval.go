@@ -12,12 +12,15 @@ type Evaluator struct {
 	env *Env
 }
 
-func NewEvaluator(parser *parser.Parser) Evaluator {
-	return Evaluator{parser: parser, env: NewEnv()}
+func NewEvaluator(parser *parser.Parser, env *Env) Evaluator {
+	return Evaluator{parser: parser, env: env}
 }
 
 func (ev *Evaluator) EvalNext(env *Env) object.Object {
 	node := ev.parser.NextNode()
+	if node == nil {
+		return nil
+	}
 	return ev.Eval(node, env)
 }
 
