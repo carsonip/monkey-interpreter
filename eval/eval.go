@@ -55,7 +55,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object
 	case *ast.Identifier:
 		return env.Get(expr.TokenLiteral())
 	case *ast.Function:
-
+		return ev.evalFunction(expr, env)
 	case *ast.FunctionCall:
 
 	}
