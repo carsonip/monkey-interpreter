@@ -77,3 +77,14 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
 	}
 }
+
+func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
+	tests := [][2]string{
+		{"fn(){let x=1; fn(){let x = 2;}(); return x;}()", "1"},
+		{"fn(){let x=1; return fn(x){return x;}(x+1);}()", "2"},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
+	}
+}
