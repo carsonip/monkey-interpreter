@@ -122,6 +122,8 @@ func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) o
 		return object.NewInteger(ev.evalNumber(infix.Left, env) / ev.evalNumber(infix.Right, env))
 	case token.TOKEN_EQUAL, token.TOKEN_NOTEQUAL, token.TOKEN_LT, token.TOKEN_GT:
 		return ev.evalComparison(infix.Left, infix.Right, infix.Token.Type, env)
+	case token.TOKEN_ASSIGNMENT:
+		return ev.evalAssignment(infix.Left, infix.Right, env)
 	}
 	panic("unknown infix operator type")
 }
@@ -160,6 +162,22 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 		}
 	}
 	panic("unknown type for comparison")
+}
+
+func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, env *Env) object.Object {
+	val := ev.evalExpression(right, env)
+	switch left := left.(type) {
+	case *ast.Identifier:
+		name := left.TokenLiteral()
+		if _, ok := env.Get(name); !ok {
+			panic("undeclared identifier")
+		} else {
+			env.Set(name, val)
+		}
+	default:
+		panic("bad lvalue")
+	}
+	return val
 }
 
 func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env) object.Object {

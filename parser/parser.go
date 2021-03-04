@@ -207,6 +207,7 @@ func (p *Parser) curTokenIs(tokenTypes ...token.TokenType) bool {
 type Precedence int
 const (
 	_ Precedence = iota
+	PRECEDENCE_ASSIGNMENT
 	PRECEDENCE_COMPARISON
 	PRECEDENCE_PLUS_MINUS
 	PRECEDENCE_MULTIPLY_DIVIDE
@@ -223,6 +224,7 @@ var operatorToPrecedence = map[token.TokenType]Precedence{
 	token.TOKEN_GT: PRECEDENCE_COMPARISON,
 	token.TOKEN_EQUAL: PRECEDENCE_COMPARISON,
 	token.TOKEN_NOTEQUAL: PRECEDENCE_COMPARISON,
+	token.TOKEN_ASSIGNMENT: PRECEDENCE_ASSIGNMENT,
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precedence) ast.Expression {

@@ -120,3 +120,14 @@ func TestEvaluator_evalComparison(t *testing.T) {
 		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
 	}
 }
+
+func TestEvaluator_evalAssignment(t *testing.T) {
+	tests := [][2]string{
+		{"let x = 1; x = 2;", "2"},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		assert.Equal(t, "", eval.EvalNext(eval.env).String())
+		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
+	}
+}
