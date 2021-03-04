@@ -58,8 +58,8 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 		Token: p.curToken,
 	}
 	p.expectAndNext(token.TOKEN_RETURN)
-	exp := p.parseExpression()
-	s.Value = exp
+	expr := p.parseExpression()
+	s.Value = expr
 	return s
 }
 
@@ -68,8 +68,8 @@ func (p *Parser) parseIfStatement() *ast.IfStatement {
 		Token: p.curToken,
 	}
 	p.expectAndNext(token.TOKEN_IF)
-	exp := p.parseExpression()
-	s.Condition = exp
+	expr := p.parseExpression()
+	s.Condition = expr
 	p.expectAndNext(token.TOKEN_LBRACE)
 	for !p.curTokenIs(token.TOKEN_RBRACE) {
 		s.Then = append(s.Then, p.NextNode())
@@ -92,9 +92,9 @@ func (p *Parser) parseExpression() ast.Expression {
 
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.expectAndNext(token.TOKEN_LPAREN)
-	exp := p.parseExpressionWithPrecedence(0)
+	expr := p.parseExpressionWithPrecedence(0)
 	p.expectAndNext(token.TOKEN_RPAREN)
-	return exp
+	return expr
 }
 
 func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Expression {
@@ -220,22 +220,22 @@ var operatorToPrecedence = map[token.TokenType]Precedence{
 }
 
 func (p *Parser) parseInfixExpression(left ast.Expression, curPrecedence Precedence) ast.Expression {
-	exp := &ast.InfixExpression{
+	expr := &ast.InfixExpression{
 		Token: p.curToken,
 		Left:  left,
 	}
 	p.next()
-	exp.Right = p.parseExpressionWithPrecedence(curPrecedence)
-	return exp
+	expr.Right = p.parseExpressionWithPrecedence(curPrecedence)
+	return expr
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
-	exp := &ast.PrefixExpression{
+	expr := &ast.PrefixExpression{
 		Token: p.curToken,
 	}
 	p.next()
-	exp.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX)
-	return exp
+	expr.Right = p.parseExpressionWithPrecedence(PRECEDENCE_PREFIX)
+	return expr
 }
 
 func (p *Parser) parseBoolean() ast.Expression {
@@ -243,12 +243,12 @@ func (p *Parser) parseBoolean() ast.Expression {
 	if p.curToken.Type == token.TOKEN_TRUE {
 		val = true
 	}
-	exp := &ast.Boolean{
+	expr := &ast.Boolean{
 		Token: p.curToken,
 		Value: val,
 	}
 	p.next()
-	return exp
+	return expr
 }
 
 func (p *Parser) parseFunctionCall(expr ast.Expression) *ast.FunctionCall {
