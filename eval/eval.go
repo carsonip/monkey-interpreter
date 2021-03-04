@@ -111,18 +111,55 @@ func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
 }
 
 func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) object.Object {
-	var result int
 	switch infix.Token.Type {
 	case token.TOKEN_PLUS:
-		result = ev.evalNumber(infix.Left, env) + ev.evalNumber(infix.Right, env)
+		return object.NewInteger(ev.evalNumber(infix.Left, env) + ev.evalNumber(infix.Right, env))
 	case token.TOKEN_MINUS:
-		result = ev.evalNumber(infix.Left, env) - ev.evalNumber(infix.Right, env)
+		return object.NewInteger(ev.evalNumber(infix.Left, env) - ev.evalNumber(infix.Right, env))
 	case token.TOKEN_ASTERISK:
-		result = ev.evalNumber(infix.Left, env) * ev.evalNumber(infix.Right, env)
+		return object.NewInteger(ev.evalNumber(infix.Left, env) * ev.evalNumber(infix.Right, env))
 	case token.TOKEN_SLASH:
-		result = ev.evalNumber(infix.Left, env) / ev.evalNumber(infix.Right, env)
+		return object.NewInteger(ev.evalNumber(infix.Left, env) / ev.evalNumber(infix.Right, env))
+	case token.TOKEN_EQUAL, token.TOKEN_NOTEQUAL, token.TOKEN_LT, token.TOKEN_GT:
+		return ev.evalComparison(infix.Left, infix.Right, infix.Token.Type, env)
 	}
-	return object.NewInteger(result)
+	panic("unknown infix operator type")
+}
+
+func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *Env) object.Object {
+	left := ev.evalExpression(leftExpr, env)
+	right := ev.evalExpression(rightExpr, env)
+	switch left := left.(type) {
+	case object.Integer:
+		if right, ok := right.(object.Integer); ok {
+			switch tokenType {
+			case token.TOKEN_EQUAL:
+				return object.NewBoolean(left.Value == right.Value)
+			case token.TOKEN_NOTEQUAL:
+				return object.NewBoolean(left.Value != right.Value)
+			case token.TOKEN_LT:
+				return object.NewBoolean(left.Value < right.Value)
+			case token.TOKEN_GT:
+				return object.NewBoolean(left.Value > right.Value)
+			}
+		} else {
+			panic("comparison type mismatch")
+		}
+	case object.Boolean:
+		if right, ok := right.(object.Boolean); ok {
+			switch tokenType {
+			case token.TOKEN_EQUAL:
+				return object.NewBoolean(left.Value == right.Value)
+			case token.TOKEN_NOTEQUAL:
+				return object.NewBoolean(left.Value != right.Value)
+			default:
+				panic("cannot compare boolean")
+			}
+		} else {
+			panic("comparison type mismatch")
+		}
+	}
+	panic("unknown type for comparison")
 }
 
 func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env) object.Object {

@@ -101,3 +101,22 @@ func TestEvaluator_evalIfStatement(t *testing.T) {
 		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
 	}
 }
+
+func TestEvaluator_evalComparison(t *testing.T) {
+	tests := [][2]string{
+		{"1 < 2", "true"},
+		{"2 > 1", "true"},
+		{"1 + 0 < 2", "true"},
+		{"1 + 1 < 2", "false"},
+		{"1 + 1 > 2", "false"},
+		{"2 > 1 + 0", "true"},
+		{"1 + 1 == 2", "true"},
+		{"1 != 2", "true"},
+		{"true != false", "true"},
+		{"true != true", "false"},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
+	}
+}
