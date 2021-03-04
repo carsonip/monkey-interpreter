@@ -57,3 +57,10 @@ func (e *Env) Returned() (object.Object, bool) {
 	}
 	return nil, false
 }
+
+func (e *Env) MustReturned() object.Object {
+	if returnValue, ok := e.Returned(); ok {
+		return returnValue
+	}
+	return nil
+}
