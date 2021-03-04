@@ -37,6 +37,8 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
 		ev.evalLetStatement(statement, env)
 	case *ast.ReturnStatement:
 		ev.evalReturnStatement(statement, env)
+	case *ast.IfStatement:
+		ev.evalIfStatement(statement, env)
 	default:
 		panic("not implemented")
 	}
@@ -51,6 +53,22 @@ func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *Env) {
 func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *Env) {
 	val := ev.evalExpression(statement.Value, env)
 	env.Return(val)
+}
+
+func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
+	var nodes []ast.Node
+	pass := ev.evalBoolean(statement.Condition, env)
+	if pass {
+		nodes = statement.Then
+	} else {
+		nodes = statement.Else
+	}
+	for _, node := range nodes {
+		ev.Eval(node, env)
+		if _, ok := env.Returned(); ok {
+			return
+		}
+	}
 }
 
 func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object {
