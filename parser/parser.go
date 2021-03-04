@@ -31,6 +31,8 @@ func (p *Parser) NextNode() ast.Node {
 		node = p.parseLetStatement()
 	case token.TOKEN_RETURN:
 		node = p.parseReturnStatement()
+	case token.TOKEN_IF:
+		node = p.parseIfStatement()
 	default:
 		node = p.parseExpression()
 	}
@@ -58,6 +60,29 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	p.expectAndNext(token.TOKEN_RETURN)
 	exp := p.parseExpression()
 	s.Value = exp
+	return s
+}
+
+func (p *Parser) parseIfStatement() *ast.IfStatement {
+	s := &ast.IfStatement{
+		Token: p.curToken,
+	}
+	p.expectAndNext(token.TOKEN_IF)
+	exp := p.parseExpression()
+	s.Condition = exp
+	p.expectAndNext(token.TOKEN_LBRACE)
+	for !p.curTokenIs(token.TOKEN_RBRACE) {
+		s.Then = append(s.Then, p.NextNode())
+	}
+	p.expectAndNext(token.TOKEN_RBRACE)
+	if p.curTokenIs(token.TOKEN_ELSE) {
+		p.expectAndNext(token.TOKEN_ELSE)
+		p.expectAndNext(token.TOKEN_LBRACE)
+		for !p.curTokenIs(token.TOKEN_RBRACE) {
+			s.Else = append(s.Else, p.NextNode())
+		}
+		p.expectAndNext(token.TOKEN_RBRACE)
+	}
 	return s
 }
 
@@ -110,7 +135,7 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence, isGroup
 
 		if p.curTokenIs(token.TOKEN_LPAREN) {
 			return p.parseFunctionCall(expr)
-		} else if p.curTokenIs(token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH) {
+		} else if p.curTokenIs(token.TOKEN_LBRACE, token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH) {
 			precedence := operatorToPrecedence[p.curToken.Type]
 			if precedence <= curPrecedence {
 				return expr

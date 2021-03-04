@@ -180,3 +180,33 @@ func TestParser_FunctionCall(t *testing.T) {
 	assert.IsType(t, &ast.InfixExpression{}, fnCall.Arguments[1])
 	assert.IsType(t, &ast.Function{}, fnCall.Arguments[2])
 }
+
+func TestParser_IfStatement(t *testing.T) {
+	str := `if true { 1; 2; }`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	s, ok := node.(*ast.IfStatement)
+	assert.True(t, ok)
+	assert.Equal(t, "true", s.Condition.TokenLiteral())
+	assert.Len(t, s.Then, 2)
+	assert.Equal(t, "1", s.Then[0].TokenLiteral())
+	assert.Equal(t, "2", s.Then[1].TokenLiteral())
+	assert.Len(t, s.Else, 0)
+}
+
+func TestParser_IfStatement_Else(t *testing.T) {
+	str := `if true { 1; 2; } else { 3; 4; }`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	s, ok := node.(*ast.IfStatement)
+	assert.True(t, ok)
+	assert.Equal(t, "true", s.Condition.TokenLiteral())
+	assert.Len(t, s.Then, 2)
+	assert.Equal(t, "1", s.Then[0].TokenLiteral())
+	assert.Equal(t, "2", s.Then[1].TokenLiteral())
+	assert.Len(t, s.Else, 2)
+	assert.Equal(t, "3", s.Else[0].TokenLiteral())
+	assert.Equal(t, "4", s.Else[1].TokenLiteral())
+}

@@ -63,6 +63,19 @@ func (r *ReturnStatement) TokenLiteral() string {
 
 func (r *ReturnStatement) statement() {}
 
+type IfStatement struct {
+	Token token.Token
+	Condition Expression
+	Then []Node
+	Else []Node
+}
+
+func (s *IfStatement) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+func (s *IfStatement) statement() {}
+
 type NumberLiteral struct {
 	Token token.Token
 	Value int
