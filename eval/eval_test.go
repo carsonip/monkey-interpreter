@@ -62,3 +62,9 @@ func TestEvaluator_evalFunction(t *testing.T) {
 	eval := getEvaluator(input)
 	assert.Equal(t, "fn", eval.EvalNext(eval.env).String())
 }
+
+func TestEvaluator_evalFunctionCall(t *testing.T) {
+	input := `fn(x, y){100; x+200;}(1, 2)`
+	eval := getEvaluator(input)
+	assert.Equal(t, "", eval.EvalNext(eval.env).String())
+}

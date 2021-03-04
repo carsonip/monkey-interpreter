@@ -82,7 +82,7 @@ func NewBoolean(value bool) Boolean {
 }
 
 type Function struct {
-	Params []*ast.Identifier
+	Params []string
 	Body []ast.Node
 	Env *Env
 }
@@ -92,7 +92,11 @@ func (f Function) String() string {
 }
 
 func NewFunction(params []*ast.Identifier, body []ast.Node, env *Env) Function {
-	return Function{Params: params, Body: body, Env: env}
+	var paramStrs []string
+	for _, p := range params {
+		paramStrs = append(paramStrs, p.TokenLiteral())
+	}
+	return Function{Params: paramStrs, Body: body, Env: env}
 }
 
 type ReturnValue struct {

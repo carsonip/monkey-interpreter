@@ -18,6 +18,10 @@ func NewEvaluator(parser *parser.Parser) Evaluator {
 
 func (ev *Evaluator) EvalNext(env *object.Env) object.Object {
 	node := ev.parser.NextNode()
+	return ev.Eval(node, env)
+}
+
+func (ev *Evaluator) Eval(node ast.Node, env *object.Env) object.Object {
 	if statement, ok := node.(ast.Statement); ok {
 		ev.evalStatement(statement, env)
 		return object.NULL
@@ -57,7 +61,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object
 	case *ast.Function:
 		return ev.evalFunction(expr, env)
 	case *ast.FunctionCall:
-
+		return ev.evalFunctionCall(expr, env)
 	}
 	panic("not implemented")
 }
@@ -118,4 +122,31 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *obj
 func (ev *Evaluator) evalFunction(fn *ast.Function, env *object.Env) *object.Function {
 	fnObj := object.NewFunction(fn.Params, fn.Body, object.NewNestedEnv(env))
 	return &fnObj
+}
+
+func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *object.Env) object.Object {
+	expr := ev.evalExpression(fnCall.FunctionExpr, env)
+	if fn, ok := expr.(*object.Function); !ok {
+		panic("not a function")
+	} else {
+		var args []object.Object
+		for _, argAst := range fnCall.Arguments {
+			args = append(args, ev.evalExpression(argAst, env))
+		}
+		return ev.callFunction(fn, args, env)
+	}
+}
+
+func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, parentEnv *object.Env) object.Object {
+	env := object.NewNestedEnv(parentEnv)
+	if len(fn.Params) != len(args) {
+		panic("argument length mismatch")
+	}
+	for i, name := range fn.Params {
+		env.Set(name, args[i])
+	}
+	for _, node := range fn.Body {
+		ev.Eval(node, env)
+	}
+	return object.NULL
 }
