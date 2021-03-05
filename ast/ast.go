@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"github.com/carsonip/monkey-interpreter/token"
 )
 
@@ -94,7 +95,7 @@ type InfixExpression struct {
 }
 
 func (i *InfixExpression) TokenLiteral() string {
-	return i.Token.Literal
+	return fmt.Sprintf("(%s %s %s)", i.Left.TokenLiteral(), i.Token.Literal, i.Right.TokenLiteral())
 }
 
 func (i *InfixExpression) expression() {}
@@ -105,7 +106,7 @@ type PrefixExpression struct {
 }
 
 func (p *PrefixExpression) TokenLiteral() string {
-	return p.Token.Literal
+	return fmt.Sprintf("(%s%s)", p.Token.Literal, p.Right.TokenLiteral())
 }
 
 func (p *PrefixExpression) expression() {}

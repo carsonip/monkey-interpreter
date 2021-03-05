@@ -50,8 +50,7 @@ func TestParser_InfixExpression(t *testing.T) {
 	num, ok = exp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 2, num.Value)
-	node = p.NextNode()
-	assert.Nil(t, node)
+	assert.Nil(t, p.NextNode())
 }
 
 func TestParser_InfixExpression_Precedence(t *testing.T) {
@@ -59,20 +58,8 @@ func TestParser_InfixExpression_Precedence(t *testing.T) {
 	lex := token.NewLexer(str)
 	p := NewParser(&lex)
 	node := p.NextNode()
-	exp, ok := node.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_MINUS, exp.Token.Type)
-	lExp, ok := exp.Left.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_PLUS, lExp.Token.Type)
-	lRExp, ok := lExp.Right.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_ASTERISK, lRExp.Token.Type)
-	rExp, ok := exp.Right.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_SLASH, rExp.Token.Type)
-	node = p.NextNode()
-	assert.Nil(t, node)
+	assert.Equal(t, "((1 + (2 * 3)) - (4 / 5))", node.TokenLiteral())
+	assert.Nil(t, p.NextNode())
 }
 
 func TestParser_InfixExpression_Precedence_Left(t *testing.T) {
@@ -80,23 +67,8 @@ func TestParser_InfixExpression_Precedence_Left(t *testing.T) {
 	lex := token.NewLexer(str)
 	p := NewParser(&lex)
 	node := p.NextNode()
-	exp, ok := node.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_PLUS, exp.Token.Type)
-	lExp, ok := exp.Left.(*ast.InfixExpression)
-	assert.True(t, ok)
-	assert.Equal(t, token.TOKEN_PLUS, lExp.Token.Type)
-	lLExp, ok := lExp.Left.(*ast.NumberLiteral)
-	assert.True(t, ok)
-	assert.Equal(t, 1, lLExp.Value)
-	lRExp, ok := lExp.Right.(*ast.NumberLiteral)
-	assert.True(t, ok)
-	assert.Equal(t, 2, lRExp.Value)
-	rExp, ok := exp.Right.(*ast.NumberLiteral)
-	assert.True(t, ok)
-	assert.Equal(t, 3, rExp.Value)
-	node = p.NextNode()
-	assert.Nil(t, node)
+	assert.Equal(t, "((1 + 2) + 3)", node.TokenLiteral())
+	assert.Nil(t, p.NextNode())
 }
 
 func TestParser_PrefixExpression(t *testing.T) {
@@ -110,8 +82,16 @@ func TestParser_PrefixExpression(t *testing.T) {
 	num, ok := exp.Right.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 1, num.Value)
-	node = p.NextNode()
-	assert.Nil(t, node)
+	assert.Nil(t, p.NextNode())
+}
+
+func TestParser_InfixExpression_PrefixExpression(t *testing.T) {
+	str := `1 + -2 + +3 - -4`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	assert.Equal(t, "(((1 + (-2)) + (+3)) - (-4))", node.TokenLiteral())
+	assert.Nil(t, p.NextNode())
 }
 
 func TestParser_Boolean(t *testing.T) {
