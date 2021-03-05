@@ -116,6 +116,8 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		expr = p.parseGroupedExpression()
 	case token.TOKEN_STRING:
 		expr = p.parseString()
+	case token.TOKEN_LBRACKET:
+		expr = p.parseArray()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -123,7 +125,7 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 	}
 
 	for {
-		if p.curTokenIs(token.TOKEN_RPAREN, token.TOKEN_COMMA, token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
+		if p.curTokenIs(token.TOKEN_RPAREN, token.TOKEN_RBRACKET, token.TOKEN_COMMA, token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
 			return expr
 		}
 
@@ -282,4 +284,21 @@ func (p *Parser) parseString() *ast.String {
 	str := &ast.String{Token: p.curToken, Value: p.curToken.Literal}
 	p.expectAndNext(token.TOKEN_STRING)
 	return str
+}
+
+func (p *Parser) parseArray() *ast.Array {
+	arr := &ast.Array{Token: p.curToken}
+	p.expectAndNext(token.TOKEN_LBRACKET)
+	first := true
+	for !p.curTokenIs(token.TOKEN_RBRACKET) {
+		if first {
+			first = false
+		} else {
+			p.expectAndNext(token.TOKEN_COMMA)
+		}
+		expr := p.parseExpression()
+		arr.Elements = append(arr.Elements, expr)
+	}
+	p.expectAndNext(token.TOKEN_RBRACKET)
+	return arr
 }

@@ -35,6 +35,8 @@ const (
 	TOKEN_GT
 	TOKEN_SEMICOLON
 	TOKEN_STRING
+	TOKEN_LBRACKET
+	TOKEN_RBRACKET
 )
 
 var charToToken = map[byte]TokenType{
@@ -54,6 +56,8 @@ var charToToken = map[byte]TokenType{
 	'<': TOKEN_LT,
 	'>': TOKEN_GT,
 	';': TOKEN_SEMICOLON,
+	'[': TOKEN_LBRACKET,
+	']': TOKEN_RBRACKET,
 }
 
 var keywords = map[string]TokenType{

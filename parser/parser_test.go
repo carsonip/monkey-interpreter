@@ -200,3 +200,18 @@ func TestParser_String(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, "hello world", s.Value)
 }
+
+func TestParser_Array(t *testing.T) {
+	str := `[1, "foo", []]`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	arr, ok := node.(*ast.Array)
+	assert.True(t, ok)
+	assert.Len(t, arr.Elements, 3)
+	assert.Equal(t, "1", arr.Elements[0].TokenLiteral())
+	assert.Equal(t, `"foo"`, arr.Elements[1].TokenLiteral())
+	innerArr, ok := arr.Elements[2].(*ast.Array)
+	assert.True(t, ok)
+	assert.Len(t, innerArr.Elements, 0)
+}

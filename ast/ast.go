@@ -156,3 +156,14 @@ func (s *String) TokenLiteral() string {
 }
 
 func (s *String) expression() {}
+
+type Array struct {
+	Token token.Token
+	Elements []Expression
+}
+
+func (a *Array) TokenLiteral() string {
+	return a.Token.Literal
+}
+
+func (a *Array) expression() {}
