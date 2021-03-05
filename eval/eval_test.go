@@ -114,6 +114,8 @@ func TestEvaluator_evalComparison(t *testing.T) {
 		{"1 != 2", "true"},
 		{"true != false", "true"},
 		{"true != true", "false"},
+		{`"foo" == "bar"`, "false"},
+		{`"foo" == "foo"`, "true"},
 	}
 	for _, test := range tests {
 		eval := getEvaluator(test[0])

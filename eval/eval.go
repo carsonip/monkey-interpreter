@@ -164,6 +164,19 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 		} else {
 			panic("comparison type mismatch")
 		}
+	case object.String:
+		if right, ok := right.(object.String); ok {
+			switch tokenType {
+			case token.TOKEN_EQUAL:
+				return object.NewBoolean(left.Value == right.Value)
+			case token.TOKEN_NOTEQUAL:
+				return object.NewBoolean(left.Value != right.Value)
+			default:
+				panic("cannot compare string")
+			}
+		} else {
+			panic("comparison type mismatch")
+		}
 	}
 	panic("unknown type for comparison")
 }
