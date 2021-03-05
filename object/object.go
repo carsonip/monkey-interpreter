@@ -57,3 +57,15 @@ func (f Function) String() string {
 func NewFunction(params []string, body []ast.Node) Function {
 	return Function{Params: params, Body: body}
 }
+
+type String struct {
+	Value string
+}
+
+func (s String) String() string {
+	return fmt.Sprintf("\"%s\"", s.Value)
+}
+
+func NewString(value string) String {
+	return String{Value: value}
+}

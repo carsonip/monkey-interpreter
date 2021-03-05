@@ -80,6 +80,8 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 		return object.NewInteger(expr.Value)
 	case *ast.Boolean:
 		return object.NewBoolean(expr.Value)
+	case *ast.String:
+		return object.NewString(expr.Value)
 	case *ast.InfixExpression:
 		return ev.evalInfixExpression(expr, env)
 	case *ast.PrefixExpression:
