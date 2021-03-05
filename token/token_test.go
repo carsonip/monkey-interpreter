@@ -7,7 +7,7 @@ import (
 
 func TestLexer_NextToken(t *testing.T) {
 	var tok Token
-	l := NewLexer(",. foo let 0123 == != = !foo")
+	l := NewLexer(",. foo let 0123 == != = !foo \"hello\"")
 	assert.Equal(t, TOKEN_COMMA, l.NextToken().Type)
 	assert.Equal(t, TOKEN_DOT, l.NextToken().Type)
 	tok = l.NextToken()
@@ -24,5 +24,8 @@ func TestLexer_NextToken(t *testing.T) {
 	assert.Equal(t, TOKEN_ASSIGNMENT, l.NextToken().Type)
 	assert.Equal(t, TOKEN_NOT, l.NextToken().Type)
 	assert.Equal(t, TOKEN_IDENTIFIER, l.NextToken().Type)
+	tok = l.NextToken()
+	assert.Equal(t, TOKEN_STRING, tok.Type)
+	assert.Equal(t, "hello", tok.Literal)
 	assert.Equal(t, TOKEN_EOF, l.NextToken().Type)
 }

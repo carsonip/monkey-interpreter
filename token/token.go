@@ -34,6 +34,7 @@ const (
 	TOKEN_LT
 	TOKEN_GT
 	TOKEN_SEMICOLON
+	TOKEN_STRING
 )
 
 var charToToken = map[byte]TokenType{
@@ -122,6 +123,17 @@ func (l *Lexer) readNumber() string {
 	return l.input[lastPos:l.pos]
 }
 
+func (l *Lexer) readString() string {
+	l.readChar()
+	lastPos := l.pos
+	for l.ch != '"' && l.ch != 0 {
+		l.readChar()
+	}
+	str := l.input[lastPos:l.pos]
+	l.readChar()
+	return str
+}
+
 func (l *Lexer) eatWhitespace() {
 	for l.ch == ' ' || l.ch == '\n' || l.ch == '\t' {
 		l.readChar()
@@ -158,6 +170,9 @@ func (l *Lexer) NextToken() Token {
 		} else {
 			return newToken(TOKEN_NOT, "!")
 		}
+	} else if l.ch == '"' {
+		str := l.readString()
+		return newToken(TOKEN_STRING, str)
 	} else {
 		tokenType, ok := charToToken[l.ch]
 		ch := l.ch
