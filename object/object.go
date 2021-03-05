@@ -3,6 +3,7 @@ package object
 import (
 	"fmt"
 	"github.com/carsonip/monkey-interpreter/ast"
+	"strings"
 )
 
 type Object interface {
@@ -68,4 +69,21 @@ func (s String) String() string {
 
 func NewString(value string) String {
 	return String{Value: value}
+}
+
+type Array struct {
+	Elements []Object
+}
+
+func (a Array) String() string {
+	var strs []string
+	for _, element := range a.Elements {
+		strs = append(strs, element.String())
+	}
+
+	return fmt.Sprintf(`[%s]`, strings.Join(strs, ", "))
+}
+
+func NewArray(elements []Object) Array {
+	return Array{Elements: elements}
 }

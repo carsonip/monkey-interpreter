@@ -92,6 +92,8 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 		return ev.evalFunction(expr, env)
 	case *ast.FunctionCall:
 		return ev.evalFunctionCall(expr, env)
+	case *ast.Array:
+		return ev.evalArray(expr, env)
 	}
 	panic("not implemented")
 }
@@ -241,4 +243,13 @@ func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, par
 		}
 	}
 	return object.NULL
+}
+
+func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) *object.Array {
+	var elements []object.Object
+	for _, expr := range arr.Elements {
+		elements = append(elements, ev.evalExpression(expr, env))
+	}
+	arrObj := object.NewArray(elements)
+	return &arrObj
 }
