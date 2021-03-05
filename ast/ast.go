@@ -145,3 +145,14 @@ func (f *FunctionCall) TokenLiteral() string {
 }
 
 func (f *FunctionCall) expression() {}
+
+type String struct {
+	Token token.Token
+	Value string
+}
+
+func (s *String) TokenLiteral() string {
+	return fmt.Sprintf("\"%s\"", s.Token.Literal)
+}
+
+func (s *String) expression() {}

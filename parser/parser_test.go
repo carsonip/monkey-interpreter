@@ -190,3 +190,13 @@ func TestParser_IfStatement_Else(t *testing.T) {
 	assert.Equal(t, "3", s.Else[0].TokenLiteral())
 	assert.Equal(t, "4", s.Else[1].TokenLiteral())
 }
+
+func TestParser_String(t *testing.T) {
+	str := `"hello world"`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	s, ok := node.(*ast.String)
+	assert.True(t, ok)
+	assert.Equal(t, "hello world", s.Value)
+}

@@ -114,6 +114,8 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		expr = p.parseBoolean()
 	case token.TOKEN_LPAREN:
 		expr = p.parseGroupedExpression()
+	case token.TOKEN_STRING:
+		expr = p.parseString()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -274,4 +276,10 @@ func (p *Parser) parseFunctionCall(expr ast.Expression) *ast.FunctionCall {
 	}
 	p.expectAndNext(token.TOKEN_RPAREN)
 	return fnCall
+}
+
+func (p *Parser) parseString() *ast.String {
+	str := &ast.String{Token: p.curToken, Value: p.curToken.Literal}
+	p.expectAndNext(token.TOKEN_STRING)
+	return str
 }
