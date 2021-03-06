@@ -55,6 +55,7 @@ func TestEvaluator_evalLetStatement(t *testing.T) {
 func TestEvaluator_evalIdentifier(t *testing.T) {
 	tests := [][]string{
 		{`let x = 100; x; x+x; 3*x`, "", "100", "200", "300"},
+		{`let len = 100; len`, "", "100"},
 	}
 	runTests(t, tests)
 }

@@ -102,10 +102,13 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 
 func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object {
 	name := expr.TokenLiteral()
-	if builtin, ok := BUILTINS[name]; ok {
+	if val, ok := env.Get(name); ok {
+		return val
+	} else if builtin, ok := BUILTINS[name]; ok {
 		return builtin
+	} else {
+		panic("unknown identifier")
 	}
-	return env.MustGet(name)
 }
 
 func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
