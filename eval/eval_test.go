@@ -75,6 +75,7 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 		{"fn(x, y){100; x+200; return x+y; 300;}(1, 2)", "3"},
 		{"fn(){fn(){return 1;}()}()", ""},
 		{"fn(){return fn(){return 1;}()}()", "1"},
+		{"fn(){return fn(){return 1;}}()()", "1"},
 	}
 	runTests(t, tests)
 }
@@ -162,10 +163,12 @@ func TestEvaluator_Index(t *testing.T) {
 	tests := [][]string{
 		{`[0][0]`, "0"},
 		{`[0,1,1+1][1+1]`, "2"},
+		{`[[1]][0][0]`, "1"},
 		{`{1: 2}[1]`, "2"},
 		{`{"foo": 2}["foo"]`, "2"},
 		{`{0: 1, false: 2}[false]`, "2"},
 		{`{0: 1, false: 2}[0]`, "1"},
+		{`{0: {"foo": "bar"}}[0]["foo"]`, `"bar"`},
 	}
 	runTests(t, tests)
 }

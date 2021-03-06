@@ -132,9 +132,9 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		}
 
 		if p.curTokenIs(token.TOKEN_LPAREN) {
-			return p.parseFunctionCall(expr)
+			expr = p.parseFunctionCall(expr)
 		} else if p.curTokenIs(token.TOKEN_LBRACKET) {
-			return p.parseIndex(expr)
+			expr = p.parseIndex(expr)
 		} else if precedence, ok := operatorToPrecedence[p.curToken.Type]; ok {
 			if precedence <= curPrecedence {
 				return expr

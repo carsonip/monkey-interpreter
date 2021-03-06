@@ -161,6 +161,16 @@ func TestParser_FunctionCall(t *testing.T) {
 	assert.IsType(t, &ast.Function{}, fnCall.Arguments[2])
 }
 
+func TestParser_FunctionCall_Nested(t *testing.T) {
+	str := `fn(){return fn(){}}()()`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	_, ok := node.(*ast.FunctionCall)
+	assert.True(t, ok)
+	assert.Nil(t, p.NextNode())
+}
+
 func TestParser_IfStatement(t *testing.T) {
 	str := `if (true) { 1; 2; }`
 	lex := token.NewLexer(str)
@@ -229,6 +239,16 @@ func TestParser_Index(t *testing.T) {
 	ind, ok := indExpr.Index.(*ast.NumberLiteral)
 	assert.True(t, ok)
 	assert.Equal(t, 1, ind.Value)
+}
+
+func TestParser_Index_Nested(t *testing.T) {
+	str := `[[1]][0][0]`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	_, ok := node.(*ast.Index)
+	assert.True(t, ok)
+	assert.Nil(t, p.NextNode())
 }
 
 func TestParser_Map(t *testing.T) {
