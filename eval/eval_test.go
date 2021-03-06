@@ -97,6 +97,12 @@ func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
 func TestEvaluator_evalIfStatement(t *testing.T) {
 	tests := [][]string{
 		{"let x = 1; if (true) {x=2;}; x", "", "", "2"},
+		{"let x = 1; if (false) {x=2;}; x", "", "", "1"},
+		{"let x = 1; if (false) {x=2;} else {x=3;}; x", "", "", "3"},
+		{"let x = 1; if (0) {x=2;} else {x=3;}; x", "", "", "2"},
+		{"let x = 1; if (1) {x=2;} else {x=3;}; x", "", "", "2"},
+		{"let x = 1; if (fn(){}) {x=2;} else {x=3;}; x", "", "", "2"},
+		{"let x = 1; if (fn(){}()) {x=2;} else {x=3;}; x", "", "", "3"},
 		{"let x = 1; if (true) {let x=2;}; x", "", "", "1"},
 		{"fn(){if (true) {return 1; 2;}; return 3;}()", "1"},
 	}

@@ -60,8 +60,8 @@ func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *En
 
 func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
 	var nodes []ast.Node
-	pass := ev.evalBoolean(statement.Condition, env)
-	if pass {
+	ok := isTruthy(ev.evalExpression(statement.Condition, env))
+	if ok {
 		nodes = statement.Then
 	} else {
 		nodes = statement.Else
@@ -73,6 +73,17 @@ func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
 			env.returnValue = newEnv.returnValue
 			return
 		}
+	}
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case object.Boolean:
+		return obj.Value
+	case object.Null:
+		return false
+	default:
+		return true
 	}
 }
 
