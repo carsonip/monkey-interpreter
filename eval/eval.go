@@ -109,6 +109,8 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 		return ev.evalArray(expr, env)
 	case *ast.Index:
 		return ev.evalIndex(expr, env)
+	case *ast.Map:
+		return ev.evalMap(expr, env)
 	}
 	panic("not implemented")
 }
@@ -312,8 +314,27 @@ func (ev *Evaluator) evalIndex(ind *ast.Index, env *Env) object.Object {
 			panic("bad index value")
 		}
 		obj = left.Elements[indNum]
+	case object.Map:
+		key := ev.evalExpression(ind.Index, env)
+		if val, ok := left.Get(key); !ok {
+			panic("key not found")
+		} else {
+			obj = val
+		}
 	default:
 		panic("invalid type for index operation")
 	}
 	return obj
+}
+
+func (ev *Evaluator) evalMap(m *ast.Map, env *Env) object.Map {
+	var pairs [][2]object.Object
+	for _, kvExprs := range m.Pairs {
+		kExpr := kvExprs[0]
+		vExpr := kvExprs[1]
+		k := ev.evalExpression(kExpr, env)
+		v := ev.evalExpression(vExpr, env)
+		pairs = append(pairs, [2]object.Object{k, v})
+	}
+	return object.NewMap(pairs)
 }

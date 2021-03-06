@@ -149,10 +149,23 @@ func TestEvaluator_Array(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_Map(t *testing.T) {
+	tests := [][]string{
+		{`{1+1: 2+2}`, `{2: 4}`},
+		{`{0: 1, false: 2}`, `{0: 1, false: 2}`},
+		{`{"foo": {1: 2}}`, `{"foo": {1: 2}}`},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_Index(t *testing.T) {
 	tests := [][]string{
 		{`[0][0]`, "0"},
 		{`[0,1,1+1][1+1]`, "2"},
+		{`{1: 2}[1]`, "2"},
+		{`{"foo": 2}["foo"]`, "2"},
+		{`{0: 1, false: 2}[false]`, "2"},
+		{`{0: 1, false: 2}[0]`, "1"},
 	}
 	runTests(t, tests)
 }
