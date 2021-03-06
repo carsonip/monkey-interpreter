@@ -230,3 +230,13 @@ func TestParser_Index(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, 1, ind.Value)
 }
+
+func TestParser_Map(t *testing.T) {
+	str := `{"foo": 1, 2: "bar"}`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	m, ok := node.(*ast.Map)
+	assert.True(t, ok)
+	assert.Len(t, m.Pairs, 2)
+}

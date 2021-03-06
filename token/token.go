@@ -34,6 +34,7 @@ const (
 	TOKEN_LT
 	TOKEN_GT
 	TOKEN_SEMICOLON
+	TOKEN_COLON
 	TOKEN_STRING
 	TOKEN_LBRACKET
 	TOKEN_RBRACKET
@@ -56,6 +57,7 @@ var charToToken = map[byte]TokenType{
 	'<': TOKEN_LT,
 	'>': TOKEN_GT,
 	';': TOKEN_SEMICOLON,
+	':': TOKEN_COLON,
 	'[': TOKEN_LBRACKET,
 	']': TOKEN_RBRACKET,
 }

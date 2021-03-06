@@ -179,3 +179,15 @@ func (in *Index) TokenLiteral() string {
 }
 
 func (in *Index) expression() {}
+
+type Map struct {
+	Token token.Token
+	Pairs [][2]Expression
+}
+
+func (m *Map) TokenLiteral() string {
+	return m.Token.Literal
+}
+
+func (m *Map) expression() {}
+

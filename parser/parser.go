@@ -118,6 +118,8 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 		expr = p.parseString()
 	case token.TOKEN_LBRACKET:
 		expr = p.parseArray()
+	case token.TOKEN_LBRACE:
+		expr = p.parseMap()
 	default:
 		log.Panicf("expected expression, got %d %s instead", p.curToken.Type, p.curToken.Literal)
 		p.next()
@@ -125,7 +127,7 @@ func (p *Parser) parseExpressionWithPrecedence(curPrecedence Precedence) ast.Exp
 	}
 
 	for {
-		if p.curTokenIs(token.TOKEN_RPAREN, token.TOKEN_RBRACKET, token.TOKEN_COMMA, token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
+		if p.curTokenIs(token.TOKEN_COLON, token.TOKEN_RBRACE, token.TOKEN_RPAREN, token.TOKEN_RBRACKET, token.TOKEN_COMMA, token.TOKEN_SEMICOLON, token.TOKEN_EOF) {
 			return expr
 		}
 
@@ -311,4 +313,23 @@ func (p *Parser) parseIndex(left ast.Expression) *ast.Index {
 	ind.Index = p.parseExpression()
 	p.expectAndNext(token.TOKEN_RBRACKET)
 	return ind
+}
+
+func (p *Parser) parseMap() *ast.Map {
+	m := &ast.Map{Token: p.curToken}
+	p.expectAndNext(token.TOKEN_LBRACE)
+	first := true
+	for !p.curTokenIs(token.TOKEN_RBRACE) {
+		if first {
+			first = false
+		} else {
+			p.expectAndNext(token.TOKEN_COMMA)
+		}
+		key := p.parseExpression()
+		p.expectAndNext(token.TOKEN_COLON)
+		val := p.parseExpression()
+		m.Pairs = append(m.Pairs, [2]ast.Expression{key, val})
+	}
+	p.expectAndNext(token.TOKEN_RBRACE)
+	return m
 }
