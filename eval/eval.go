@@ -87,7 +87,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 	case *ast.PrefixExpression:
 		return ev.evalPrefixExpression(expr, env)
 	case *ast.Identifier:
-		return env.MustGet(expr.TokenLiteral())
+		return ev.evalIdentifier(expr, env)
 	case *ast.Function:
 		return ev.evalFunction(expr, env)
 	case *ast.FunctionCall:
@@ -96,6 +96,14 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 		return ev.evalArray(expr, env)
 	}
 	panic("not implemented")
+}
+
+func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object {
+	name := expr.TokenLiteral()
+	if builtin, ok := BUILTINS[name]; ok {
+		return builtin
+	}
+	return env.MustGet(name)
 }
 
 func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
@@ -219,29 +227,38 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 	panic("not implemented")
 }
 
-func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) *object.Function {
+func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) object.Function {
 	var params []string
 	for _, p := range fn.Params {
 		params = append(params, p.TokenLiteral())
 	}
 	fnObj := object.NewFunction(params, fn.Body)
-	return &fnObj
+	return fnObj
+}
+
+func (ev *Evaluator) convertFnArgs(argExprs []ast.Expression, env *Env) []object.Object {
+	var args []object.Object
+	for _, argExpr := range argExprs {
+		args = append(args, ev.evalExpression(argExpr, env))
+	}
+	return args
 }
 
 func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *Env) object.Object {
 	expr := ev.evalExpression(fnCall.FunctionExpr, env)
-	if fn, ok := expr.(*object.Function); !ok {
-		panic("not a function")
-	} else {
-		var args []object.Object
-		for _, argExpr := range fnCall.Arguments {
-			args = append(args, ev.evalExpression(argExpr, env))
-		}
+	switch fn := expr.(type) {
+	case object.Function:
+		args := ev.convertFnArgs(fnCall.Arguments, env)
 		return ev.callFunction(fn, args, env)
+	case object.BuiltinFunction:
+		args := ev.convertFnArgs(fnCall.Arguments, env)
+		return ev.callBuiltinFunction(fn, args, env)
+	default:
+		panic("not a function")
 	}
 }
 
-func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, parentEnv *Env) object.Object {
+func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, parentEnv *Env) object.Object {
 	env := NewNestedEnv(parentEnv)
 	if len(fn.Params) != len(args) {
 		panic("argument length mismatch")
@@ -258,11 +275,15 @@ func (ev *Evaluator) callFunction(fn *object.Function, args []object.Object, par
 	return object.NULL
 }
 
-func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) *object.Array {
+func (ev *Evaluator) callBuiltinFunction(fn object.BuiltinFunction, args []object.Object, parentEnv *Env) object.Object {
+	return fn.Fn(args...)
+}
+
+func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) object.Array {
 	var elements []object.Object
 	for _, expr := range arr.Elements {
 		elements = append(elements, ev.evalExpression(expr, env))
 	}
 	arrObj := object.NewArray(elements)
-	return &arrObj
+	return arrObj
 }

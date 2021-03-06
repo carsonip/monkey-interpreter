@@ -154,3 +154,14 @@ func TestEvaluator_Array(t *testing.T) {
 		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
 	}
 }
+
+func TestEvaluator_Builtin(t *testing.T) {
+	tests := [][2]string{
+		{`len([1,2])`, `2`},
+		{`len("foo")`, `3`},
+	}
+	for _, test := range tests {
+		eval := getEvaluator(test[0])
+		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
+	}
+}

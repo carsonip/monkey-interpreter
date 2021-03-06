@@ -59,6 +59,14 @@ func NewFunction(params []string, body []ast.Node) Function {
 	return Function{Params: params, Body: body}
 }
 
+type BuiltinFunction struct {
+	Fn func(args ...Object) Object
+}
+
+func (f BuiltinFunction) String() string {
+	return "builtin"
+}
+
 type String struct {
 	Value string
 }
