@@ -43,8 +43,22 @@ func (e *Env) MustGet(name string) object.Object {
 	return val
 }
 
-func (e *Env) Set(name string, value object.Object) {
+func (e *Env) SetNew(name string, value object.Object) {
 	e.env[name] = value
+}
+
+func (e *Env) Set(name string, value object.Object) {
+	if _, ok := e.env[name]; ok {
+		e.env[name] = value
+		return
+	} else {
+		if e.parentEnv != nil {
+			e.parentEnv.Set(name, value)
+			return
+		} else {
+			panic("unknown identifier")
+		}
+	}
 }
 
 func (e *Env) Return(value object.Object) {

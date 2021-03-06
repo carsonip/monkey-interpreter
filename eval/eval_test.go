@@ -93,9 +93,9 @@ func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
 
 func TestEvaluator_evalIfStatement(t *testing.T) {
 	tests := [][]string{
-		{"if (true) {let x=1;} else {let x=2;}; x", "", "1"},
-		{"if (false) {let x=1;} else {let x=2;}; x", "", "2"},
-		{"fn(){if (true) {return 1; 2;}}()", "1"},
+		{"let x = 1; if (true) {x=2;}; x", "", "", "2"},
+		{"let x = 1; if (true) {let x=2;}; x", "", "", "1"},
+		{"fn(){if (true) {return 1; 2;}; return 3;}()", "1"},
 	}
 	runTests(t, tests)
 }

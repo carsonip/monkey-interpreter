@@ -50,7 +50,7 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
 func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *Env) {
 	name := statement.Name.TokenLiteral()
 	val := ev.evalExpression(statement.Value, env)
-	env.Set(name, val)
+	env.SetNew(name, val)
 }
 
 func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *Env) {
@@ -66,9 +66,11 @@ func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
 	} else {
 		nodes = statement.Else
 	}
+	newEnv := NewNestedEnv(env)
 	for _, node := range nodes {
-		ev.Eval(node, env)
-		if _, ok := env.Returned(); ok {
+		ev.Eval(node, newEnv)
+		if _, ok := newEnv.Returned(); ok {
+			env.returnValue = newEnv.returnValue
 			return
 		}
 	}
@@ -194,11 +196,7 @@ func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, e
 	switch left := left.(type) {
 	case *ast.Identifier:
 		name := left.TokenLiteral()
-		if _, ok := env.Get(name); !ok {
-			panic("undeclared identifier")
-		} else {
-			env.Set(name, val)
-		}
+		env.Set(name, val)
 	default:
 		panic("bad lvalue")
 	}
@@ -264,7 +262,7 @@ func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, pare
 		panic("argument length mismatch")
 	}
 	for i, name := range fn.Params {
-		env.Set(name, args[i])
+		env.SetNew(name, args[i])
 	}
 	for _, node := range fn.Body {
 		ev.Eval(node, env)
