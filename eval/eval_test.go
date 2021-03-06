@@ -15,6 +15,18 @@ func getEvaluator(input string) Evaluator {
 	return eval
 }
 
+func runTests(t *testing.T, tests [][]string) {
+	for _, inputOutput := range tests {
+		input := inputOutput[0]
+		outputs := inputOutput[1:]
+		eval := getEvaluator(input)
+		for _, output := range outputs {
+			assert.Equal(t, output, eval.EvalNext(eval.env).String())
+		}
+		assert.Nil(t, eval.EvalNext(eval.env))
+	}
+}
+
 func TestEvaluator_evalInfixExpression(t *testing.T) {
 	eval := getEvaluator(`1+2*3-4`)
 	obj := eval.EvalNext(eval.env)
@@ -24,17 +36,13 @@ func TestEvaluator_evalInfixExpression(t *testing.T) {
 }
 
 func TestEvaluator_evalPrefixExpression(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{"+1", "1"},
 		{"-1", "-1"},
 		{"!true", "false"},
 		{"!false", "true"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		obj := eval.EvalNext(eval.env)
-		assert.Equal(t, test[1], obj.String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalLetStatement(t *testing.T) {
@@ -64,7 +72,7 @@ func TestEvaluator_evalFunction(t *testing.T) {
 }
 
 func TestEvaluator_evalFunctionCall(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{"fn(){1;}()", ""},
 		{"fn(){1; return 2;}()", "2"},
 		{"fn(x){1; return 2; return true;}(100)", "2"},
@@ -72,38 +80,28 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 		{"fn(){fn(){return 1;}()}()", ""},
 		{"fn(){return fn(){return 1;}()}()", "1"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{"fn(){let x=1; fn(){let x = 2;}(); return x;}()", "1"},
 		{"fn(){let x=1; return fn(x){return x;}(x+1);}()", "2"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalIfStatement(t *testing.T) {
-	tests := [][2]string{
-		{"if (true) {let x=1;} else {let x=2;}; x", "1"},
-		{"if (false) {let x=1;} else {let x=2;}; x", "2"},
-		{"if (true) {}; fn(){if (true) {return 1; 2;}}()", "1"},
+	tests := [][]string{
+		{"if (true) {let x=1;} else {let x=2;}; x", "", "1"},
+		{"if (false) {let x=1;} else {let x=2;}; x", "", "2"},
+		{"fn(){if (true) {return 1; 2;}}()", "1"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, "", eval.EvalNext(eval.env).String())
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalComparison(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{"1 < 2", "true"},
 		{"2 > 1", "true"},
 		{"1 + 0 < 2", "true"},
@@ -117,51 +115,35 @@ func TestEvaluator_evalComparison(t *testing.T) {
 		{`"foo" == "bar"`, "false"},
 		{`"foo" == "foo"`, "true"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalAssignment(t *testing.T) {
-	tests := [][2]string{
-		{"let x = 1; x = 2;", "2"},
+	tests := [][]string{
+		{"let x = 1; x = 2;", "", "2"},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, "", eval.EvalNext(eval.env).String())
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_String(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{`"foo"`, `"foo"`},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_Array(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{`[1+1]`, `[2]`},
 		{`[["foo"]]`, `[["foo"]]`},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_Builtin(t *testing.T) {
-	tests := [][2]string{
+	tests := [][]string{
 		{`len([1,2])`, `2`},
 		{`len("foo")`, `3`},
 	}
-	for _, test := range tests {
-		eval := getEvaluator(test[0])
-		assert.Equal(t, test[1], eval.EvalNext(eval.env).String())
-	}
+	runTests(t, tests)
 }
