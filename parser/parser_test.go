@@ -215,3 +215,18 @@ func TestParser_Array(t *testing.T) {
 	assert.True(t, ok)
 	assert.Len(t, innerArr.Elements, 0)
 }
+
+func TestParser_Index(t *testing.T) {
+	str := `[][1]`
+	lex := token.NewLexer(str)
+	p := NewParser(&lex)
+	node := p.NextNode()
+	indExpr, ok := node.(*ast.Index)
+	assert.True(t, ok)
+	arr, ok := indExpr.Left.(*ast.Array)
+	assert.True(t, ok)
+	assert.Len(t, arr.Elements, 0)
+	ind, ok := indExpr.Index.(*ast.NumberLiteral)
+	assert.True(t, ok)
+	assert.Equal(t, 1, ind.Value)
+}
