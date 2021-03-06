@@ -107,6 +107,8 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 		return ev.evalFunctionCall(expr, env)
 	case *ast.Array:
 		return ev.evalArray(expr, env)
+	case *ast.Index:
+		return ev.evalIndex(expr, env)
 	}
 	panic("not implemented")
 }
@@ -298,4 +300,20 @@ func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) object.Array {
 	}
 	arrObj := object.NewArray(elements)
 	return arrObj
+}
+
+func (ev *Evaluator) evalIndex(ind *ast.Index, env *Env) object.Object {
+	var obj object.Object
+	left := ev.evalExpression(ind.Left, env)
+	switch left := left.(type) {
+	case object.Array:
+		indNum := ev.evalNumber(ind.Index, env)
+		if indNum < 0 || indNum >= len(left.Elements) {
+			panic("bad index value")
+		}
+		obj = left.Elements[indNum]
+	default:
+		panic("invalid type for index operation")
+	}
+	return obj
 }

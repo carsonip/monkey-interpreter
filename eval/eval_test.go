@@ -149,6 +149,14 @@ func TestEvaluator_Array(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_Index(t *testing.T) {
+	tests := [][]string{
+		{`[0][0]`, "0"},
+		{`[0,1,1+1][1+1]`, "2"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_Builtin(t *testing.T) {
 	tests := [][]string{
 		{`len([1,2])`, `2`},

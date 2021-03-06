@@ -167,3 +167,15 @@ func (a *Array) TokenLiteral() string {
 }
 
 func (a *Array) expression() {}
+
+type Index struct {
+	Token token.Token
+	Left Expression
+	Index Expression
+}
+
+func (in *Index) TokenLiteral() string {
+	return in.Token.Literal
+}
+
+func (in *Index) expression() {}
