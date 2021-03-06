@@ -79,6 +79,13 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalBuiltinFunction(t *testing.T) {
+	tests := [][]string{
+		{`len`, "builtin"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
 	tests := [][]string{
 		{"fn(){let x=1; fn(){let x = 2;}(); return x;}()", "1"},
