@@ -46,29 +46,24 @@ func TestEvaluator_evalPrefixExpression(t *testing.T) {
 }
 
 func TestEvaluator_evalLetStatement(t *testing.T) {
-	input := `let x = 100;
-x`
-	eval := getEvaluator(input)
-	assert.Equal(t, "", eval.EvalNext(eval.env).String())
-	assert.Equal(t, "100", eval.EvalNext(eval.env).String())
+	tests := [][]string{
+		{`let x = 100; x`, "", "100"},
+	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalIdentifier(t *testing.T) {
-	input := `let x = 100;
-x;
-x+x;
-3*x`
-	eval := getEvaluator(input)
-	assert.Equal(t, "", eval.EvalNext(eval.env).String())
-	assert.Equal(t, "100", eval.EvalNext(eval.env).String())
-	assert.Equal(t, "200", eval.EvalNext(eval.env).String())
-	assert.Equal(t, "300", eval.EvalNext(eval.env).String())
+	tests := [][]string{
+		{`let x = 100; x; x+x; 3*x`, "", "100", "200", "300"},
+	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalFunction(t *testing.T) {
-	input := `fn(x, y){100; x+200;}`
-	eval := getEvaluator(input)
-	assert.Equal(t, "fn", eval.EvalNext(eval.env).String())
+	tests := [][]string{
+		{`fn(x, y){100; x+200;}`, "fn"},
+	}
+	runTests(t, tests)
 }
 
 func TestEvaluator_evalFunctionCall(t *testing.T) {
