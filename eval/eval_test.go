@@ -135,6 +135,15 @@ func TestEvaluator_evalAssignment(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalAssignmentIndex(t *testing.T) {
+	tests := [][]string{
+		{"let x = [1, 2]; x[1] = 3; x", "", "3", "[1, 3]"},
+		{`let x = {"foo": "bar"}; x["foo"] = "baz"; x`, "", `"baz"`, `{"foo": "baz"}`},
+		{`let x = {}; x["foo"] = "baz"; x`, "", `"baz"`, `{"foo": "baz"}`},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_String(t *testing.T) {
 	tests := [][]string{
 		{`"foo"`, `"foo"`},

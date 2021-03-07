@@ -119,6 +119,17 @@ func (a Array) String() string {
 	return fmt.Sprintf(`[%s]`, strings.Join(strs, ", "))
 }
 
+func (a Array) Set(ind Object, value Object) {
+	indNum, ok := ind.(Integer)
+	if !ok {
+		panic("array index not an integer")
+	}
+	if indNum.Value < 0 || indNum.Value >= len(a.Elements) {
+		panic("array out of bounds")
+	}
+	a.Elements[indNum.Value] = value
+}
+
 func NewArray(elements []Object) Array {
 	return Array{Elements: elements}
 }

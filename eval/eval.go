@@ -215,10 +215,24 @@ func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, e
 	case *ast.Identifier:
 		name := left.TokenLiteral()
 		env.Set(name, val)
+	case *ast.Index:
+		ev.evalAssignmentIndex(left, right, env)
 	default:
 		panic("bad lvalue")
 	}
 	return val
+}
+
+func (ev *Evaluator) evalAssignmentIndex(ind *ast.Index, right ast.Expression, env *Env) {
+	left := ev.evalExpression(ind.Left, env)
+	indVal := ev.evalExpression(ind.Index, env)
+	value := ev.evalExpression(right, env)
+	switch left := left.(type) {
+	case object.Array:
+		left.Set(indVal, value)
+	case object.Map:
+		left.Set(indVal, value)
+	}
 }
 
 func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env) object.Object {
