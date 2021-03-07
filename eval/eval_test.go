@@ -155,6 +155,7 @@ func TestEvaluator_Map(t *testing.T) {
 		{`{1+1: 2+2}`, `{2: 4}`},
 		{`{0: 1, false: 2}`, `{0: 1, false: 2}`},
 		{`{"foo": {1: 2}}`, `{"foo": {1: 2}}`},
+		{`{1: 1, 1: 2}`, `{1: 2}`},
 	}
 	runTests(t, tests)
 }

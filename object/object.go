@@ -166,17 +166,30 @@ func (m Map) Get(key Object) (Object, bool) {
 	}
 }
 
+func (m Map) Set(key Object, value Object) {
+	hashable, ok := key.(Hashable)
+	if !ok {
+		panic("key not hashable")
+	}
+
+	h := hashable.Hash()
+	if pairs, ok := m.Elements[h]; ok {
+		for i, kv := range pairs {
+			if kv.Key == key {
+				m.Elements[h][i].Value = value
+				return
+			}
+		}
+	}
+	m.Elements[h] = append(m.Elements[h], KV{key, value})
+}
+
 func NewMap(pairs [][2]Object) Map {
 	m := Map{Elements: make(map[uint64][]KV)}
 	for _, kv := range pairs {
 		k := kv[0]
 		v := kv[1]
-		if hashable, ok := k.(Hashable); !ok {
-			panic("key not hashable")
-		} else {
-			h := hashable.Hash()
-			m.Elements[h] = append(m.Elements[h], KV{k, v})
-		}
+		m.Set(k, v)
 	}
 	return m
 }
