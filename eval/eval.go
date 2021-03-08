@@ -76,10 +76,12 @@ func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
 	}
 	newEnv := NewNestedEnv(env)
 	for _, node := range nodes {
-		ev.Eval(node, newEnv)
+		result := ev.Eval(node, newEnv)
 		if _, ok := newEnv.Returned(); ok {
 			env.returnValue = newEnv.returnValue
 			return
+		} else if err, ok := result.(object.Error); ok {
+			panic(err)
 		}
 	}
 }
@@ -309,7 +311,7 @@ func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, pare
 		if val, ok := env.Returned(); ok {
 			return val
 		} else if err, ok := result.(object.Error); ok {
-			return err
+			panic(err)
 		}
 	}
 	return object.NULL

@@ -124,6 +124,13 @@ func TestEvaluator_evalIfStatement(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalIfStatement_Error(t *testing.T) {
+	tests := [][]string{
+		{"let x = 1; if (true) {y; x=2;}; x", "", "error: unknown identifier", "1"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalComparison(t *testing.T) {
 	tests := [][]string{
 		{"1 < 2", "true"},
