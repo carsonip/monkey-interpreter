@@ -90,6 +90,9 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 func TestEvaluator_TestEvaluator_evalFunctionCall_Error(t *testing.T) {
 	tests := [][]string{
 		{"fn(){x; 1;}()", "error: unknown identifier"},
+		{"fn(x){}()", "error: argument length mismatch"},
+		{"fn(){}(1)", "error: argument length mismatch"},
+		{"1(1)", "error: not a function"},
 	}
 	runTests(t, tests)
 }
@@ -164,6 +167,14 @@ func TestEvaluator_evalAssignment(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalAssignment_Error(t *testing.T) {
+	tests := [][]string{
+		{"1 = 1;", "error: bad lvalue"},
+		{`"foo" = 1;`, "error: bad lvalue"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalAssignmentIndex(t *testing.T) {
 	tests := [][]string{
 		{"let x = [1, 2]; x[1] = 3; x", "", "3", "[1, 3]"},
@@ -172,6 +183,7 @@ func TestEvaluator_evalAssignmentIndex(t *testing.T) {
 	}
 	runTests(t, tests)
 }
+
 
 func TestEvaluator_String(t *testing.T) {
 	tests := [][]string{
@@ -208,6 +220,17 @@ func TestEvaluator_Index(t *testing.T) {
 		{`{0: 1, false: 2}[false]`, "2"},
 		{`{0: 1, false: 2}[0]`, "1"},
 		{`{0: {"foo": "bar"}}[0]["foo"]`, `"bar"`},
+	}
+	runTests(t, tests)
+}
+
+func TestEvaluator_Index_Error(t *testing.T) {
+	tests := [][]string{
+		{`[1]["foo"];`, "error: not int"},
+		{`[1][-1];`, "error: bad index value"},
+		{`[1][1];`, "error: bad index value"},
+		{`{"foo": "bar"}["baz"]`, "error: key not found"},
+		{`1[0]`, "error: invalid type for index operation"},
 	}
 	runTests(t, tests)
 }
