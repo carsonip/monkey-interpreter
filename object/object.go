@@ -204,3 +204,15 @@ func NewMap(pairs [][2]Object) Map {
 	}
 	return m
 }
+
+type Error struct {
+	Message string
+}
+
+func (e Error) String() string {
+	return fmt.Sprintf("error: %s", e.Message)
+}
+
+func NewError(message string) Error {
+	return Error{Message: message}
+}

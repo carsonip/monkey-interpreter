@@ -24,14 +24,22 @@ func (ev *Evaluator) EvalNext(env *Env) object.Object {
 	return ev.Eval(node, env)
 }
 
-func (ev *Evaluator) Eval(node ast.Node, env *Env) object.Object {
+func (ev *Evaluator) Eval(node ast.Node, env *Env) (ret object.Object) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			if e, ok := err.(object.Error); ok {
+				ret = e
+			}
+		}
+	}()
 	if statement, ok := node.(ast.Statement); ok {
 		ev.evalStatement(statement, env)
 		return object.NULL
 	} else if expr, ok := node.(ast.Expression); ok {
 		return ev.evalExpression(expr, env)
 	}
-	panic("not implemented")
+	panic(object.NewError("not implemented"))
 }
 
 func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
@@ -43,7 +51,7 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
 	case *ast.IfStatement:
 		ev.evalIfStatement(statement, env)
 	default:
-		panic("not implemented")
+		panic(object.NewError("not implemented"))
 	}
 }
 
@@ -112,7 +120,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 	case *ast.Map:
 		return ev.evalMap(expr, env)
 	}
-	panic("not implemented")
+	panic(object.NewError("not implemented"))
 }
 
 func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object {
@@ -122,7 +130,7 @@ func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object
 	} else if builtin, ok := BUILTINS[name]; ok {
 		return builtin
 	} else {
-		panic("unknown identifier")
+		panic(object.NewError("unknown identifier"))
 	}
 }
 
@@ -131,7 +139,7 @@ func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
 	if num, ok := obj.(object.Integer); ok {
 		return num.Value
 	}
-	panic("not int")
+	panic(object.NewError("not int"))
 }
 
 func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
@@ -139,7 +147,7 @@ func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
 	if boolean, ok := obj.(object.Boolean); ok {
 		return boolean.Value
 	}
-	panic("not bool")
+	panic(object.NewError("not bool"))
 }
 
 func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) object.Object {
@@ -157,7 +165,7 @@ func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) o
 	case token.TOKEN_ASSIGNMENT:
 		return ev.evalAssignment(infix.Left, infix.Right, env)
 	}
-	panic("unknown infix operator type")
+	panic(object.NewError("unknown infix operator type"))
 }
 
 func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *Env) object.Object {
@@ -177,7 +185,7 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 				return object.NewBoolean(left.Value > right.Value)
 			}
 		} else {
-			panic("comparison type mismatch")
+			panic(object.NewError("comparison type mismatch"))
 		}
 	case object.Boolean:
 		if right, ok := right.(object.Boolean); ok {
@@ -187,10 +195,10 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 			case token.TOKEN_NOTEQUAL:
 				return object.NewBoolean(left.Value != right.Value)
 			default:
-				panic("cannot compare boolean")
+				panic(object.NewError("cannot compare boolean"))
 			}
 		} else {
-			panic("comparison type mismatch")
+			panic(object.NewError("comparison type mismatch"))
 		}
 	case object.String:
 		if right, ok := right.(object.String); ok {
@@ -200,13 +208,13 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 			case token.TOKEN_NOTEQUAL:
 				return object.NewBoolean(left.Value != right.Value)
 			default:
-				panic("cannot compare string")
+				panic(object.NewError("cannot compare string"))
 			}
 		} else {
-			panic("comparison type mismatch")
+			panic(object.NewError("comparison type mismatch"))
 		}
 	}
-	panic("unknown type for comparison")
+	panic(object.NewError("unknown type for comparison"))
 }
 
 func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, env *Env) object.Object {
@@ -218,7 +226,7 @@ func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, e
 	case *ast.Index:
 		ev.evalAssignmentIndex(left, right, env)
 	default:
-		panic("bad lvalue")
+		panic(object.NewError("bad lvalue"))
 	}
 	return val
 }
@@ -245,7 +253,7 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 		case token.TOKEN_MINUS:
 			result = -ev.evalNumber(prefix.Right, env)
 		default:
-			panic("bad prefix")
+			panic(object.NewError("bad prefix"))
 		}
 		return object.NewInteger(result)
 	case *ast.Boolean:
@@ -254,7 +262,7 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 			return object.NewBoolean(!ev.evalBoolean(prefix.Right, env))
 		}
 	}
-	panic("not implemented")
+	panic(object.NewError("not implemented"))
 }
 
 func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) object.Function {
@@ -284,22 +292,24 @@ func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *Env) object
 		args := ev.convertFnArgs(fnCall.Arguments, env)
 		return ev.callBuiltinFunction(fn, args, env)
 	default:
-		panic("not a function")
+		panic(object.NewError("not a function"))
 	}
 }
 
 func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, parentEnv *Env) object.Object {
 	env := NewNestedEnv(parentEnv)
 	if len(fn.Params) != len(args) {
-		panic("argument length mismatch")
+		panic(object.NewError("argument length mismatch"))
 	}
 	for i, name := range fn.Params {
 		env.SetNew(name, args[i])
 	}
 	for _, node := range fn.Body {
-		ev.Eval(node, env)
+		result := ev.Eval(node, env)
 		if val, ok := env.Returned(); ok {
 			return val
+		} else if err, ok := result.(object.Error); ok {
+			return err
 		}
 	}
 	return object.NULL
@@ -325,18 +335,18 @@ func (ev *Evaluator) evalIndex(ind *ast.Index, env *Env) object.Object {
 	case object.Array:
 		indNum := ev.evalNumber(ind.Index, env)
 		if indNum < 0 || indNum >= len(left.Elements) {
-			panic("bad index value")
+			panic(object.NewError("bad index value"))
 		}
 		obj = left.Elements[indNum]
 	case object.Map:
 		key := ev.evalExpression(ind.Index, env)
 		if val, ok := left.Get(key); !ok {
-			panic("key not found")
+			panic(object.NewError("key not found"))
 		} else {
 			obj = val
 		}
 	default:
-		panic("invalid type for index operation")
+		panic(object.NewError("invalid type for index operation"))
 	}
 	return obj
 }

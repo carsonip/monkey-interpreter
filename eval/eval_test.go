@@ -60,6 +60,13 @@ func TestEvaluator_evalIdentifier(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalIdentifier_Error(t *testing.T) {
+	tests := [][]string{
+		{"x", "error: unknown identifier"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalFunction(t *testing.T) {
 	tests := [][]string{
 		{`fn(x, y){100; x+200;}`, "fn"},
@@ -76,6 +83,13 @@ func TestEvaluator_evalFunctionCall(t *testing.T) {
 		{"fn(){fn(){return 1;}()}()", ""},
 		{"fn(){return fn(){return 1;}()}()", "1"},
 		{"fn(){return fn(){return 1;}}()()", "1"},
+	}
+	runTests(t, tests)
+}
+
+func TestEvaluator_TestEvaluator_evalFunctionCall_Error(t *testing.T) {
+	tests := [][]string{
+		{"fn(){x; 1;}()", "error: unknown identifier"},
 	}
 	runTests(t, tests)
 }
@@ -124,6 +138,14 @@ func TestEvaluator_evalComparison(t *testing.T) {
 		{"true != true", "false"},
 		{`"foo" == "bar"`, "false"},
 		{`"foo" == "foo"`, "true"},
+	}
+	runTests(t, tests)
+}
+
+func TestEvaluator_evalComparison_Error(t *testing.T) {
+	tests := [][]string{
+		{"1 < true", "error: comparison type mismatch"},
+		{"[] > []", "error: unknown type for comparison"},
 	}
 	runTests(t, tests)
 }
