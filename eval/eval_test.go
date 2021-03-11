@@ -11,7 +11,7 @@ import (
 func getEvaluator(input string) Evaluator {
 	lexer := token.NewLexer(input)
 	p := parser.NewParser(&lexer)
-	eval := NewEvaluator(&p, NewEnv())
+	eval := NewEvaluator(&p, object.NewEnv())
 	return eval
 }
 

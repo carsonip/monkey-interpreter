@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/carsonip/monkey-interpreter/eval"
+	"github.com/carsonip/monkey-interpreter/object"
 	"github.com/carsonip/monkey-interpreter/parser"
 	"github.com/carsonip/monkey-interpreter/token"
 	"io"
@@ -14,7 +15,7 @@ type Repl struct {}
 const PROMPT = ">> "
 
 func (r *Repl) Start(in io.Reader, out io.Writer) {
-	env := eval.NewEnv()
+	env := object.NewEnv()
 	scanner := bufio.NewScanner(in)
 	for {
 		fmt.Fprint(out, PROMPT)

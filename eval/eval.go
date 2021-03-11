@@ -9,14 +9,14 @@ import (
 
 type Evaluator struct {
 	parser *parser.Parser
-	env *Env
+	env *object.Env
 }
 
-func NewEvaluator(parser *parser.Parser, env *Env) Evaluator {
+func NewEvaluator(parser *parser.Parser, env *object.Env) Evaluator {
 	return Evaluator{parser: parser, env: env}
 }
 
-func (ev *Evaluator) EvalNext(env *Env) object.Object {
+func (ev *Evaluator) EvalNext(env *object.Env) object.Object {
 	node := ev.parser.NextNode()
 	if node == nil {
 		return nil
@@ -24,7 +24,7 @@ func (ev *Evaluator) EvalNext(env *Env) object.Object {
 	return ev.Eval(node, env)
 }
 
-func (ev *Evaluator) Eval(node ast.Node, env *Env) (ret object.Object) {
+func (ev *Evaluator) Eval(node ast.Node, env *object.Env) (ret object.Object) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -42,7 +42,7 @@ func (ev *Evaluator) Eval(node ast.Node, env *Env) (ret object.Object) {
 	panic(object.NewError("not implemented"))
 }
 
-func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
+func (ev *Evaluator) evalStatement(statement ast.Statement, env *object.Env) {
 	switch statement := statement.(type) {
 	case *ast.LetStatement:
 		ev.evalLetStatement(statement, env)
@@ -55,18 +55,18 @@ func (ev *Evaluator) evalStatement(statement ast.Statement, env *Env) {
 	}
 }
 
-func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *Env) {
+func (ev *Evaluator) evalLetStatement(statement *ast.LetStatement, env *object.Env) {
 	name := statement.Name.TokenLiteral()
 	val := ev.evalExpression(statement.Value, env)
 	env.SetNew(name, val)
 }
 
-func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *Env) {
+func (ev *Evaluator) evalReturnStatement(statement *ast.ReturnStatement, env *object.Env) {
 	val := ev.evalExpression(statement.Value, env)
 	env.Return(val)
 }
 
-func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
+func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *object.Env) {
 	var nodes []ast.Node
 	ok := isTruthy(ev.evalExpression(statement.Condition, env))
 	if ok {
@@ -74,11 +74,11 @@ func (ev *Evaluator) evalIfStatement(statement *ast.IfStatement, env *Env) {
 	} else {
 		nodes = statement.Else
 	}
-	newEnv := NewNestedEnv(env)
+	newEnv := object.NewNestedEnv(env)
 	for _, node := range nodes {
 		result := ev.Eval(node, newEnv)
-		if _, ok := newEnv.Returned(); ok {
-			env.returnValue = newEnv.returnValue
+		if returnValue, ok := newEnv.Returned(); ok {
+			env.Return(returnValue)
 			return
 		} else if err, ok := result.(object.Error); ok {
 			panic(err)
@@ -97,7 +97,7 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object {
+func (ev *Evaluator) evalExpression(expr ast.Expression, env *object.Env) object.Object {
 	switch expr := expr.(type) {
 	case *ast.NumberLiteral:
 		return object.NewInteger(expr.Value)
@@ -125,7 +125,7 @@ func (ev *Evaluator) evalExpression(expr ast.Expression, env *Env) object.Object
 	panic(object.NewError("not implemented"))
 }
 
-func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object {
+func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *object.Env) object.Object {
 	name := expr.TokenLiteral()
 	if val, ok := env.Get(name); ok {
 		return val
@@ -136,7 +136,7 @@ func (ev *Evaluator) evalIdentifier(expr ast.Expression, env *Env) object.Object
 	}
 }
 
-func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
+func (ev *Evaluator) evalNumber(expr ast.Expression, env *object.Env) int {
 	obj := ev.evalExpression(expr, env)
 	if num, ok := obj.(object.Integer); ok {
 		return num.Value
@@ -144,7 +144,7 @@ func (ev *Evaluator) evalNumber(expr ast.Expression, env *Env) int {
 	panic(object.NewError("not int"))
 }
 
-func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
+func (ev *Evaluator) evalBoolean(expr ast.Expression, env *object.Env) bool {
 	obj := ev.evalExpression(expr, env)
 	if boolean, ok := obj.(object.Boolean); ok {
 		return boolean.Value
@@ -152,7 +152,7 @@ func (ev *Evaluator) evalBoolean(expr ast.Expression, env *Env) bool {
 	panic(object.NewError("not bool"))
 }
 
-func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) object.Object {
+func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *object.Env) object.Object {
 	switch infix.Token.Type {
 	case token.TOKEN_PLUS:
 		return object.NewInteger(ev.evalNumber(infix.Left, env) + ev.evalNumber(infix.Right, env))
@@ -170,7 +170,7 @@ func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *Env) o
 	panic(object.NewError("unknown infix operator type"))
 }
 
-func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *Env) object.Object {
+func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *object.Env) object.Object {
 	left := ev.evalExpression(leftExpr, env)
 	right := ev.evalExpression(rightExpr, env)
 	switch left := left.(type) {
@@ -219,7 +219,7 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 	panic(object.NewError("unknown type for comparison"))
 }
 
-func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, env *Env) object.Object {
+func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, env *object.Env) object.Object {
 	val := ev.evalExpression(right, env)
 	switch left := left.(type) {
 	case *ast.Identifier:
@@ -233,7 +233,7 @@ func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, e
 	return val
 }
 
-func (ev *Evaluator) evalAssignmentIndex(ind *ast.Index, right ast.Expression, env *Env) {
+func (ev *Evaluator) evalAssignmentIndex(ind *ast.Index, right ast.Expression, env *object.Env) {
 	left := ev.evalExpression(ind.Left, env)
 	indVal := ev.evalExpression(ind.Index, env)
 	value := ev.evalExpression(right, env)
@@ -245,7 +245,7 @@ func (ev *Evaluator) evalAssignmentIndex(ind *ast.Index, right ast.Expression, e
 	}
 }
 
-func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env) object.Object {
+func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *object.Env) object.Object {
 	switch prefix.Right.(type) {
 	case *ast.NumberLiteral:
 		var result int
@@ -267,7 +267,7 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *Env
 	panic(object.NewError("not implemented"))
 }
 
-func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) object.Function {
+func (ev *Evaluator) evalFunction(fn *ast.Function, env *object.Env) object.Function {
 	var params []string
 	for _, p := range fn.Params {
 		params = append(params, p.TokenLiteral())
@@ -276,7 +276,7 @@ func (ev *Evaluator) evalFunction(fn *ast.Function, env *Env) object.Function {
 	return fnObj
 }
 
-func (ev *Evaluator) convertFnArgs(argExprs []ast.Expression, env *Env) []object.Object {
+func (ev *Evaluator) convertFnArgs(argExprs []ast.Expression, env *object.Env) []object.Object {
 	var args []object.Object
 	for _, argExpr := range argExprs {
 		args = append(args, ev.evalExpression(argExpr, env))
@@ -284,7 +284,7 @@ func (ev *Evaluator) convertFnArgs(argExprs []ast.Expression, env *Env) []object
 	return args
 }
 
-func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *Env) object.Object {
+func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *object.Env) object.Object {
 	expr := ev.evalExpression(fnCall.FunctionExpr, env)
 	switch fn := expr.(type) {
 	case object.Function:
@@ -298,8 +298,8 @@ func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *Env) object
 	}
 }
 
-func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, parentEnv *Env) object.Object {
-	env := NewNestedEnv(parentEnv)
+func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, parentEnv *object.Env) object.Object {
+	env := object.NewNestedEnv(parentEnv)
 	if len(fn.Params) != len(args) {
 		panic(object.NewError("argument length mismatch"))
 	}
@@ -317,11 +317,11 @@ func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, pare
 	return object.NULL
 }
 
-func (ev *Evaluator) callBuiltinFunction(fn object.BuiltinFunction, args []object.Object, parentEnv *Env) object.Object {
+func (ev *Evaluator) callBuiltinFunction(fn object.BuiltinFunction, args []object.Object, parentEnv *object.Env) object.Object {
 	return fn.Fn(args...)
 }
 
-func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) object.Array {
+func (ev *Evaluator) evalArray(arr *ast.Array, env *object.Env) object.Array {
 	var elements []object.Object
 	for _, expr := range arr.Elements {
 		elements = append(elements, ev.evalExpression(expr, env))
@@ -330,7 +330,7 @@ func (ev *Evaluator) evalArray(arr *ast.Array, env *Env) object.Array {
 	return arrObj
 }
 
-func (ev *Evaluator) evalIndex(ind *ast.Index, env *Env) object.Object {
+func (ev *Evaluator) evalIndex(ind *ast.Index, env *object.Env) object.Object {
 	var obj object.Object
 	left := ev.evalExpression(ind.Left, env)
 	switch left := left.(type) {
@@ -353,7 +353,7 @@ func (ev *Evaluator) evalIndex(ind *ast.Index, env *Env) object.Object {
 	return obj
 }
 
-func (ev *Evaluator) evalMap(m *ast.Map, env *Env) object.Map {
+func (ev *Evaluator) evalMap(m *ast.Map, env *object.Env) object.Map {
 	var pairs [][2]object.Object
 	for _, kvExprs := range m.Pairs {
 		kExpr := kvExprs[0]
