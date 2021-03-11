@@ -272,7 +272,7 @@ func (ev *Evaluator) evalFunction(fn *ast.Function, env *object.Env) object.Func
 	for _, p := range fn.Params {
 		params = append(params, p.TokenLiteral())
 	}
-	fnObj := object.NewFunction(params, fn.Body)
+	fnObj := object.NewFunction(params, fn.Body, object.NewNestedEnv(env))
 	return fnObj
 }
 
@@ -289,7 +289,7 @@ func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *object.Env)
 	switch fn := expr.(type) {
 	case object.Function:
 		args := ev.convertFnArgs(fnCall.Arguments, env)
-		return ev.callFunction(fn, args, env)
+		return ev.callFunction(fn, args)
 	case object.BuiltinFunction:
 		args := ev.convertFnArgs(fnCall.Arguments, env)
 		return ev.callBuiltinFunction(fn, args, env)
@@ -298,8 +298,8 @@ func (ev *Evaluator) evalFunctionCall(fnCall *ast.FunctionCall, env *object.Env)
 	}
 }
 
-func (ev *Evaluator) callFunction(fn object.Function, args []object.Object, parentEnv *object.Env) object.Object {
-	env := object.NewNestedEnv(parentEnv)
+func (ev *Evaluator) callFunction(fn object.Function, args []object.Object) object.Object {
+	env := fn.Env
 	if len(fn.Params) != len(args) {
 		panic(object.NewError("argument length mismatch"))
 	}

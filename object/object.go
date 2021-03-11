@@ -70,14 +70,15 @@ func NewBoolean(value bool) Boolean {
 type Function struct {
 	Params []string
 	Body []ast.Node
+	Env	*Env
 }
 
 func (f Function) String() string {
 	return "fn"
 }
 
-func NewFunction(params []string, body []ast.Node) Function {
-	return Function{Params: params, Body: body}
+func NewFunction(params []string, body []ast.Node, env *Env) Function {
+	return Function{Params: params, Body: body, Env: env}
 }
 
 type BuiltinFunction struct {

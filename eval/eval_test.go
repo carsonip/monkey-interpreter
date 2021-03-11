@@ -108,6 +108,9 @@ func TestEvaluator_evalFunctionCall_Scope(t *testing.T) {
 	tests := [][]string{
 		{"fn(){let x=1; fn(){let x = 2;}(); return x;}()", "1"},
 		{"fn(){let x=1; return fn(x){return x;}(x+1);}()", "2"},
+		{"let x=1; let f=fn(){let x=2; return fn(){return x;}}(); f();", "", "", "2"},
+		{"let x=1; let f=fn(x){return fn(){return x;}}(2); f();", "", "", "2"},
+		{"let x=1; let f=fn(){return x;}; x=2; f();", "", "", "2", "2"},
 	}
 	runTests(t, tests)
 }
