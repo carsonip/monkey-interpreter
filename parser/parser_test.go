@@ -260,3 +260,16 @@ func TestParser_Map(t *testing.T) {
 	assert.True(t, ok)
 	assert.Len(t, m.Pairs, 2)
 }
+
+func TestParser_Terminate(t *testing.T) {
+	inputs := []string{
+		`fn(){`,
+	}
+	for _, input := range inputs {
+		assert.Panics(t, func() {
+			lex := token.NewLexer(input)
+			p := NewParser(&lex)
+			for p.NextNode() != nil {}
+		})
+	}
+}

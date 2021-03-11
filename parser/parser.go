@@ -73,14 +73,14 @@ func (p *Parser) parseIfStatement() *ast.IfStatement {
 	s.Condition = expr
 	p.expectAndNext(token.TOKEN_RPAREN)
 	p.expectAndNext(token.TOKEN_LBRACE)
-	for !p.curTokenIs(token.TOKEN_RBRACE) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RBRACE) {
 		s.Then = append(s.Then, p.NextNode())
 	}
 	p.expectAndNext(token.TOKEN_RBRACE)
 	if p.curTokenIs(token.TOKEN_ELSE) {
 		p.expectAndNext(token.TOKEN_ELSE)
 		p.expectAndNext(token.TOKEN_LBRACE)
-		for !p.curTokenIs(token.TOKEN_RBRACE) {
+		for !p.curTokenIsEOFOr(token.TOKEN_RBRACE) {
 			s.Else = append(s.Else, p.NextNode())
 		}
 		p.expectAndNext(token.TOKEN_RBRACE)
@@ -177,7 +177,7 @@ func(p *Parser) parseFunction() *ast.Function {
 	p.expectAndNext(token.TOKEN_FUNCTION)
 	p.expectAndNext(token.TOKEN_LPAREN)
 	isFirst := true
-	for !p.curTokenIs(token.TOKEN_RPAREN) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RPAREN) {
 		if isFirst {
 			isFirst = false
 		} else {
@@ -188,7 +188,7 @@ func(p *Parser) parseFunction() *ast.Function {
 	}
 	p.expectAndNext(token.TOKEN_RPAREN)
 	p.expectAndNext(token.TOKEN_LBRACE)
-	for !p.curTokenIs(token.TOKEN_RBRACE) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RBRACE) {
 		node := p.NextNode()
 		fn.Body = append(fn.Body, node)
 	}
@@ -210,6 +210,10 @@ func (p *Parser) curTokenIs(tokenTypes ...token.TokenType) bool {
 		}
 	}
 	return false
+}
+
+func (p *Parser) curTokenIsEOFOr(tokenTypes ...token.TokenType) bool {
+	return p.curTokenIs(tokenTypes...) || p.curTokenIs(token.TOKEN_EOF)
 }
 
 type Precedence int
@@ -271,7 +275,7 @@ func (p *Parser) parseFunctionCall(expr ast.Expression) *ast.FunctionCall {
 	fnCall := &ast.FunctionCall{Token: p.curToken, FunctionExpr: expr}
 	p.expectAndNext(token.TOKEN_LPAREN)
 	first := true
-	for !p.curTokenIs(token.TOKEN_RPAREN) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RPAREN) {
 		if first {
 			first = false
 		} else {
@@ -294,7 +298,7 @@ func (p *Parser) parseArray() *ast.Array {
 	arr := &ast.Array{Token: p.curToken}
 	p.expectAndNext(token.TOKEN_LBRACKET)
 	first := true
-	for !p.curTokenIs(token.TOKEN_RBRACKET) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RBRACKET) {
 		if first {
 			first = false
 		} else {
@@ -319,7 +323,7 @@ func (p *Parser) parseMap() *ast.Map {
 	m := &ast.Map{Token: p.curToken}
 	p.expectAndNext(token.TOKEN_LBRACE)
 	first := true
-	for !p.curTokenIs(token.TOKEN_RBRACE) {
+	for !p.curTokenIsEOFOr(token.TOKEN_RBRACE) {
 		if first {
 			first = false
 		} else {
