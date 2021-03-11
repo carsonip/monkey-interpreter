@@ -120,13 +120,24 @@ func (a Array) String() string {
 	return fmt.Sprintf(`[%s]`, strings.Join(strs, ", "))
 }
 
+func (a Array) Get(ind Object) Object {
+	indNum, ok := ind.(Integer)
+	if !ok {
+		panic(NewError("array index not an integer"))
+	}
+	if indNum.Value < 0 || indNum.Value >= len(a.Elements) {
+		panic(NewError("array index out of bounds"))
+	}
+	return a.Elements[indNum.Value]
+}
+
 func (a Array) Set(ind Object, value Object) {
 	indNum, ok := ind.(Integer)
 	if !ok {
-		panic("array index not an integer")
+		panic(NewError("array index not an integer"))
 	}
 	if indNum.Value < 0 || indNum.Value >= len(a.Elements) {
-		panic("array out of bounds")
+		panic(NewError("array index out of bounds"))
 	}
 	a.Elements[indNum.Value] = value
 }
@@ -165,7 +176,7 @@ func (m Map) String() string {
 
 func (m Map) Get(key Object) (Object, bool) {
 	if hashable, ok := key.(Hashable); !ok {
-		panic("key not hashable")
+		panic(NewError("key not hashable"))
 	} else if pairs, ok := m.Elements[hashable.Hash()]; !ok {
 		return nil, false
 	} else {
@@ -178,10 +189,18 @@ func (m Map) Get(key Object) (Object, bool) {
 	}
 }
 
+func (m Map) MustGet(key Object) Object {
+	if val, ok := m.Get(key); !ok {
+		panic(NewError("key not found"))
+	} else {
+		return val
+	}
+}
+
 func (m Map) Set(key Object, value Object) {
 	hashable, ok := key.(Hashable)
 	if !ok {
-		panic("key not hashable")
+		panic(NewError("key not hashable"))
 	}
 
 	h := hashable.Hash()

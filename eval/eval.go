@@ -356,18 +356,11 @@ func (ev *Evaluator) evalIndex(ind *ast.Index, env *object.Env) object.Object {
 	left := ev.evalExpression(ind.Left, env)
 	switch left := left.(type) {
 	case object.Array:
-		indNum := ev.evalNumber(ind.Index, env)
-		if indNum < 0 || indNum >= len(left.Elements) {
-			panic(object.NewError("bad index value"))
-		}
-		obj = left.Elements[indNum]
+		index := ev.evalExpression(ind.Index, env)
+		obj = left.Get(index)
 	case object.Map:
 		key := ev.evalExpression(ind.Index, env)
-		if val, ok := left.Get(key); !ok {
-			panic(object.NewError("key not found"))
-		} else {
-			obj = val
-		}
+		obj = left.MustGet(key)
 	default:
 		panic(object.NewError("invalid type for index operation"))
 	}

@@ -250,11 +250,15 @@ func TestEvaluator_Index(t *testing.T) {
 
 func TestEvaluator_Index_Error(t *testing.T) {
 	tests := [][]string{
-		{`[1]["foo"];`, "error: not int"},
-		{`[1][-1];`, "error: bad index value"},
-		{`[1][1];`, "error: bad index value"},
-		{`{"foo": "bar"}["baz"]`, "error: key not found"},
 		{`1[0]`, "error: invalid type for index operation"},
+		{`[1]["foo"];`, "error: array index not an integer"},
+		{`[1][[]]`, "error: array index not an integer"},
+		{`[][0]`, "error: array index out of bounds"},
+		{`[][-1]`, "error: array index out of bounds"},
+		{`[][0]=1`, "error: array index out of bounds"},
+		{`{"foo": "bar"}["baz"]`, "error: key not found"},
+		{`{}[[]]`, "error: key not hashable"},
+		{`{}[[]]=1`, "error: key not hashable"},
 	}
 	runTests(t, tests)
 }
