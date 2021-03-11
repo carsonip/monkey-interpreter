@@ -182,8 +182,6 @@ func (ev *Evaluator) evalArithmetic(leftExpr ast.Expression, rightExpr ast.Expre
 			default:
 				panic(object.NewError("unsupported arithmetic operator"))
 			}
-		} else {
-			panic(object.NewError("incompatible types for arithmetic"))
 		}
 	case object.String:
 		if right, ok := right.(object.String); ok {
@@ -193,8 +191,6 @@ func (ev *Evaluator) evalArithmetic(leftExpr ast.Expression, rightExpr ast.Expre
 			default:
 				panic(object.NewError("unsupported arithmetic operator"))
 			}
-		} else {
-			panic(object.NewError("incompatible types for arithmetic"))
 		}
 	}
 	panic(object.NewError("unsupported types for arithmetic"))
@@ -215,9 +211,9 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 				return object.NewBoolean(left.Value < right.Value)
 			case token.TOKEN_GT:
 				return object.NewBoolean(left.Value > right.Value)
+			default:
+				panic(object.NewError("unsupported comparison operator on type"))
 			}
-		} else {
-			panic(object.NewError("comparison type mismatch"))
 		}
 	case object.Boolean:
 		if right, ok := right.(object.Boolean); ok {
@@ -227,10 +223,8 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 			case token.TOKEN_NOTEQUAL:
 				return object.NewBoolean(left.Value != right.Value)
 			default:
-				panic(object.NewError("cannot compare boolean"))
+				panic(object.NewError("unsupported comparison operator on type"))
 			}
-		} else {
-			panic(object.NewError("comparison type mismatch"))
 		}
 	case object.String:
 		if right, ok := right.(object.String); ok {
@@ -240,13 +234,11 @@ func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expre
 			case token.TOKEN_NOTEQUAL:
 				return object.NewBoolean(left.Value != right.Value)
 			default:
-				panic(object.NewError("cannot compare string"))
+				panic(object.NewError("unsupported comparison operator on type"))
 			}
-		} else {
-			panic(object.NewError("comparison type mismatch"))
 		}
 	}
-	panic(object.NewError("unknown type for comparison"))
+	panic(object.NewError("unsupported types for comparison"))
 }
 
 func (ev *Evaluator) evalAssignment(left ast.Expression, right ast.Expression, env *object.Env) object.Object {
@@ -284,8 +276,6 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *obj
 			result = ev.evalNumber(prefix.Right, env)
 		case token.TOKEN_MINUS:
 			result = -ev.evalNumber(prefix.Right, env)
-		default:
-			panic(object.NewError("bad prefix"))
 		}
 		return object.NewInteger(result)
 	case *ast.Boolean:
@@ -294,7 +284,7 @@ func (ev *Evaluator) evalPrefixExpression(prefix *ast.PrefixExpression, env *obj
 			return object.NewBoolean(!ev.evalBoolean(prefix.Right, env))
 		}
 	}
-	panic(object.NewError("not implemented"))
+	panic(object.NewError("unsupported prefix operator on type"))
 }
 
 func (ev *Evaluator) evalFunction(fn *ast.Function, env *object.Env) object.Function {

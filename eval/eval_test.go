@@ -27,20 +27,20 @@ func runTests(t *testing.T, tests [][]string) {
 	}
 }
 
-func TestEvaluator_evalInfixExpression(t *testing.T) {
-	eval := getEvaluator(`1+2*3-4`)
-	obj := eval.EvalNext(eval.env)
-	num, ok := obj.(object.Integer)
-	assert.True(t, ok)
-	assert.Equal(t, 3, num.Value)
-}
-
 func TestEvaluator_evalPrefixExpression(t *testing.T) {
 	tests := [][]string{
 		{"+1", "1"},
 		{"-1", "-1"},
 		{"!true", "false"},
 		{"!false", "true"},
+	}
+	runTests(t, tests)
+}
+
+func TestEvaluator_evalPrefixExpression_Error(t *testing.T) {
+	tests := [][]string{
+		{`+true`, "error: unsupported prefix operator on type"},
+		{`+"foo"`, "error: unsupported prefix operator on type"},
 	}
 	runTests(t, tests)
 }
@@ -149,6 +149,14 @@ func TestEvaluator_evalArithmetic(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalArithmetic_Error(t *testing.T) {
+	tests := [][]string{
+		{`"foo" * 2`, "error: unsupported types for arithmetic"},
+		{`"foo" - "bar"`, "error: unsupported arithmetic operator"},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalComparison(t *testing.T) {
 	tests := [][]string{
 		{"1 < 2", "true"},
@@ -169,8 +177,9 @@ func TestEvaluator_evalComparison(t *testing.T) {
 
 func TestEvaluator_evalComparison_Error(t *testing.T) {
 	tests := [][]string{
-		{"1 < true", "error: comparison type mismatch"},
-		{"[] > []", "error: unknown type for comparison"},
+		{"1 < true", "error: unsupported types for comparison"},
+		{"[] > []", "error: unsupported types for comparison"},
+		{"true > false", "error: unsupported comparison operator on type"},
 	}
 	runTests(t, tests)
 }
