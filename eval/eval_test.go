@@ -137,6 +137,18 @@ func TestEvaluator_evalIfStatement_Error(t *testing.T) {
 	runTests(t, tests)
 }
 
+func TestEvaluator_evalArithmetic(t *testing.T) {
+	tests := [][]string{
+		{"1 + 2", "3"},
+		{"2 - 1", "1"},
+		{"2 * 2", "4"},
+		{"4 / 2", "2"},
+		{"4 / 3", "1"},
+		{`"a" + "b"`, `"ab"`},
+	}
+	runTests(t, tests)
+}
+
 func TestEvaluator_evalComparison(t *testing.T) {
 	tests := [][]string{
 		{"1 < 2", "true"},

@@ -154,20 +154,50 @@ func (ev *Evaluator) evalBoolean(expr ast.Expression, env *object.Env) bool {
 
 func (ev *Evaluator) evalInfixExpression(infix *ast.InfixExpression, env *object.Env) object.Object {
 	switch infix.Token.Type {
-	case token.TOKEN_PLUS:
-		return object.NewInteger(ev.evalNumber(infix.Left, env) + ev.evalNumber(infix.Right, env))
-	case token.TOKEN_MINUS:
-		return object.NewInteger(ev.evalNumber(infix.Left, env) - ev.evalNumber(infix.Right, env))
-	case token.TOKEN_ASTERISK:
-		return object.NewInteger(ev.evalNumber(infix.Left, env) * ev.evalNumber(infix.Right, env))
-	case token.TOKEN_SLASH:
-		return object.NewInteger(ev.evalNumber(infix.Left, env) / ev.evalNumber(infix.Right, env))
+	case token.TOKEN_PLUS, token.TOKEN_MINUS, token.TOKEN_ASTERISK, token.TOKEN_SLASH:
+		return ev.evalArithmetic(infix.Left, infix.Right, infix.Token.Type, env)
 	case token.TOKEN_EQUAL, token.TOKEN_NOTEQUAL, token.TOKEN_LT, token.TOKEN_GT:
 		return ev.evalComparison(infix.Left, infix.Right, infix.Token.Type, env)
 	case token.TOKEN_ASSIGNMENT:
 		return ev.evalAssignment(infix.Left, infix.Right, env)
 	}
 	panic(object.NewError("unknown infix operator type"))
+}
+
+func (ev *Evaluator) evalArithmetic(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *object.Env) object.Object {
+	left := ev.evalExpression(leftExpr, env)
+	right := ev.evalExpression(rightExpr, env)
+	switch left := left.(type) {
+	case object.Integer:
+		if right, ok := right.(object.Integer); ok {
+			switch tokenType {
+			case token.TOKEN_PLUS:
+				return object.NewInteger(left.Value + right.Value)
+			case token.TOKEN_MINUS:
+				return object.NewInteger(left.Value - right.Value)
+			case token.TOKEN_ASTERISK:
+				return object.NewInteger(left.Value * right.Value)
+			case token.TOKEN_SLASH:
+				return object.NewInteger(left.Value / right.Value)
+			default:
+				panic(object.NewError("unsupported arithmetic operator"))
+			}
+		} else {
+			panic(object.NewError("incompatible types for arithmetic"))
+		}
+	case object.String:
+		if right, ok := right.(object.String); ok {
+			switch tokenType {
+			case token.TOKEN_PLUS:
+				return object.NewString(left.Value + right.Value)
+			default:
+				panic(object.NewError("unsupported arithmetic operator"))
+			}
+		} else {
+			panic(object.NewError("incompatible types for arithmetic"))
+		}
+	}
+	panic(object.NewError("unsupported types for arithmetic"))
 }
 
 func (ev *Evaluator) evalComparison(leftExpr ast.Expression, rightExpr ast.Expression, tokenType token.TokenType, env *object.Env) object.Object {
