@@ -26,10 +26,11 @@ func (ev *Evaluator) EvalNext(env *object.Env) object.Object {
 
 func (ev *Evaluator) Eval(node ast.Node, env *object.Env) (ret object.Object) {
 	defer func() {
-		err := recover()
-		if err != nil {
-			if e, ok := err.(object.Error); ok {
-				ret = e
+		if err := recover(); err != nil {
+			if evalError, ok := err.(object.Error); ok {
+				ret = evalError
+			} else {
+				panic(err)
 			}
 		}
 	}()
